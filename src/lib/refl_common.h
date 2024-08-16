@@ -67,7 +67,7 @@ namespace chem_war {
 
         template<typename Ret, typename Class, typename ...Args>
         struct function_traits<Ret(Class::*)(Args...)> 
-            : details::basic_function_traits<Ret(Class::*)(Args...)> {
+            : details::basic_function_traits<Ret(Args...)> {
             using type = Ret (Class::*)(Args...);
             // `this` argument
             using argsWithClass = std::tuple<Class *, Args...>;
@@ -78,7 +78,7 @@ namespace chem_war {
 
         template<typename Ret, typename Class, typename ...Args>
         struct function_traits<Ret(Class::*)(Args...) const> 
-            : details::basic_function_traits<Ret(Class::*)(Args...) const> {
+            : details::basic_function_traits<Ret(Args...)> {
             using type = Ret (Class::*)(Args...) const;
             // `this` argument
             using argsWithClass = std::tuple<Class *, Args...>;
