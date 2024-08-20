@@ -22,11 +22,19 @@ namespace chem_war {
             }
             return ecs::Querier(this->world).Get<T>(this->entityId);
         }
-        
-        void Update();
-        void Render();
 
-        virtual ~GameObject() = default;
+        template<typename T>
+        bool HasComponent() const {
+            if (entityId == ecs::SparseSet<ecs::Entity, 32>::null) {
+                assert(false && "Not a valid ECS object");
+            }
+            return ecs::Querier(this->world).Has<T>(this->entityId);
+        }
+        
+        virtual void Update(float dt);
+        virtual void Render();
+
+        virtual ~GameObject();
     
     protected:
         ecs::World &world;

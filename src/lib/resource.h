@@ -42,14 +42,14 @@ namespace chem_war {
     class ResourceManager final {
     public:
         static void Initialize(int argc, char **argv);
-        static std::shared_ptr<Resource> Load(const std::string &id, ResourceType type, const std::string &path);
+        static Resource *Load(const std::string &id, ResourceType type, const std::string &path);
         
         template<typename T>
         static void RegisterResource(const std::string &id, ResourceType type, T *data)  {
             if (utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
                 assert(false && "Resource already exists");
             }
-            auto resource = std::make_shared<Resource>();
+            auto resource = new Resource;
             resource->type = type;
             resource->id = id;
             resource->state = ResourceState::Good;
@@ -58,14 +58,20 @@ namespace chem_war {
             ResourceManager::resourceDatabase.insert(std::make_pair(id, resource));
         }
 
-        static std::shared_ptr<Resource> Get(const std::string &id);
+        static void Check();
+
+        static Resource *Get(const std::string &id);
         static void Unload(const std::string &id);
         static void Finalize();
         static void Remove(const std::string &id);
 
+        static size_t Size();
+
     private:
-        static std::map<std::string, std::shared_ptr<Resource>> resourceDatabase;
+        static std::map<std::string, Resource *> resourceDatabase;
+        // static std::map<std::string, std::shared_ptr<Resource>> resourceDatabase;
         static int argc;
         static char **argv;
+        static bool releasing;
     };
 }

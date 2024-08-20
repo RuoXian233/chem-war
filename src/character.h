@@ -2,11 +2,19 @@
 #include <SDL2/SDL.h>
 #include "lib/resource.h"
 #include "lib/render.h"
+#include "lib/object.h"
+#include "lib/particle.h"
+#include "ui/bar.h"
+
 
 namespace chem_war {
     class Character final {
     public:
-        static Character *Instance(const ResourcePack &textures);
+        struct Bullet {
+            ecs::Entity entity;
+        };
+
+        static Character *Instance(ecs::World &world, const ResourcePack &textures);
         static Character *Instance();
         void Prepare();
         void Render();
@@ -26,6 +34,11 @@ namespace chem_war {
         void SetVelocity(float x, float y);
         void SetAcceleration(const Vec2 &v);
         void SetAcceleration(float ax, float vy);
+        inline float GetHp() { return this->hp; }
+        void SetHp(float v);
+        void IncHp(float v);
+
+        Vec2 GetCentrePos();
 
         void CheckMovement();
         bool CheckBound();
@@ -33,9 +46,29 @@ namespace chem_war {
         inline Vec2 GetVelocity() { return this->velocity; }
         inline Vec2 GetAcceleration() { return this->acceleration; }
         inline Vec2 GetPos() { return this->pos; }
+        inline Vec2 GetSize() { return this->size; }
+        inline float GetMaxHp() { return this->hpMax; }
+
+        void StartAttack();
+        void StopAttack();
+
+        // debug use
+        void DrawCollider();
+        void ColliderVisibility(bool v);
+        void AddCollision(GameObject *go);
+        void ClearCollision();
+        std::vector<GameObject *> &GetCollisions();
+
+        // debug use
+        int hits = 0;
+        bool showBulletCollider = true;
+        Bullet bullet;
+        static constexpr auto idNULL = (ecs::Entity) ecs::SparseSet<ecs::Entity, 32>::null;
 
     private:
-        Character();
+        ecs::World &world;
+
+        Character(ecs::World &world);
         Vec2 size;
         Vec2 pos;
         Vec2 velocity;
@@ -53,5 +86,18 @@ namespace chem_war {
         float minVelocityY = -600;
     
         float velocityInterval[4];
+
+        // Game Attributes
+        float hp = 0;
+        float hpMax = 100;
+        bool moving = false;
+        bool attacking = false;
+        ParticleLauncher *particleEffect;
+        float bulletLength = 160;
+        float bulletWidth = 64;
+
+        // Debug attributes
+        std::vector<GameObject *> collsions;
+        bool drawCollider = true;
     };
 }

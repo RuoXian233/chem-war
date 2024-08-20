@@ -21,6 +21,9 @@ namespace chem_war {
         static Vec2 GetMousePos(const SDL_Event &e);
 
         static bool QueryKey(SDL_Scancode key);
+        // 1 - LEFT | 2 - MID | 4 - RIGHT
+        static bool QueryMouse(int button);
+        static Vec2 QueryMousePos();
 
         static void RegisterHandler(SDL_EventType type, const EventHandler &handler);
     private:

@@ -18,9 +18,9 @@ void chem_war::GameObject::RemoveChildrens() {
     this->childrens.clear();
 }
 
-void chem_war::GameObject::Update() {
+void chem_war::GameObject::Update(float dt) {
     for (auto &&children : this->childrens) {
-        children->Update();
+        children->Update(dt);
     }
 }
 
@@ -32,4 +32,12 @@ void chem_war::GameObject::Render() {
 
 void chem_war::GameObject::SetParent(GameObject *go) {
     this->parent = go;
+}
+
+chem_war::GameObject::~GameObject() {
+    ecs::Commands cmd(this->world);
+    if (this->entityId != ecs::SparseSet<ecs::Entity, 32>::null) {
+        cmd.Destroy(this->entityId);    
+    }
+    cmd.Execute();
 }

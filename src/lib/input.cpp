@@ -10,6 +10,8 @@ std::map<Uint32, InputManager::EventHandler> InputManager::handlers;
 void InputManager::Initialize() {
     InputManager::shouldQuit = false;
     InputManager::handlers = std::map<Uint32, InputManager::EventHandler>();
+
+    srand((unsigned) time(nullptr));
 }
 
 void InputManager::Update() {
@@ -52,4 +54,15 @@ void InputManager::RegisterHandler(SDL_EventType type, const InputManager::Event
 bool InputManager::QueryKey(SDL_Scancode key) {
     auto kbState = SDL_GetKeyboardState(nullptr);
     return kbState[key];
+}
+
+bool InputManager::QueryMouse(int button) {
+    int v = SDL_GetMouseState(nullptr, nullptr);
+    return button == v;
+}
+
+Vec2 InputManager::QueryMousePos() {
+    int w, h;
+    SDL_GetMouseState(&w, &h);
+    return Vec2((float) w, (float) h);
 }

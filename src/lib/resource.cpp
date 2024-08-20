@@ -1,22 +1,24 @@
 #include "resource.h"
 
 using namespace chem_war;
-std::map<std::string, std::shared_ptr<Resource>> ResourceManager::resourceDatabase;
+std::map<std::string, Resource *> ResourceManager::resourceDatabase;
 int ResourceManager::argc;
 char **ResourceManager::argv;
+bool ResourceManager::releasing;
 
 
 void ResourceManager::Initialize(int argc, char **argv) {
     ResourceManager::argc = argc;
     ResourceManager::argv = argv;
     ResourceManager::resourceDatabase = decltype(ResourceManager::resourceDatabase)();
+    ResourceManager::releasing = false;
 }
 
-std::shared_ptr<Resource> ResourceManager::Load(const std::string &id, ResourceType type, const std::string &path) {
+Resource *ResourceManager::Load(const std::string &id, ResourceType type, const std::string &path) {
     if (utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
         assert(false && "Resource already exists");
     }
-    auto resource = std::make_shared<Resource>();
+    auto resource = new Resource;
 
     switch (type) {
     case ResourceType::Texture: {
@@ -60,7 +62,7 @@ std::shared_ptr<Resource> ResourceManager::Load(const std::string &id, ResourceT
     return resource;
 }
 
-std::shared_ptr<Resource> ResourceManager::Get(const std::string &id) {
+Resource *ResourceManager::Get(const std::string &id) {
     if (!utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
         assert(false && "Cannot find requested resource");
     }
@@ -118,4 +120,41 @@ void ResourceManager::Finalize() {
         }
     }
     ResourceManager::resourceDatabase.clear();
+}
+
+size_t ResourceManager::Size() {
+    return ResourceManager::resourceDatabase.size();
+}
+
+void ResourceManager::Check() {
+    if (ResourceManager::Size() > MAX_RESOURCE_TEXTURE_CACHE_SIZE) {
+        ResourceManager::releasing = true;
+    } 
+
+    if (releasing) {
+        int index = 1;
+        // for (auto [resId, res] : ResourceManager::resourceDatabase) {
+        for (auto it = ResourceManager::resourceDatabase.begin(); it != ResourceManager::resourceDatabase.end(); it++) {
+            if (it->second->type == ResourceType::Texture) {
+                if (it->second->state == ResourceState::Good) {
+                    ResourceManager::Unload(it->first);
+                }
+            }
+        }  
+    }
+    
+    std::vector<std::string> toRemove;
+    for (auto it = ResourceManager::resourceDatabase.begin(); it != ResourceManager::resourceDatabase.end(); it++) {
+        if (it->second->state == ResourceState::Released) {
+            toRemove.push_back(it->first);
+        }
+    }
+
+    for (auto id : toRemove) {
+        ResourceManager::Remove(id);
+    }
+
+    if (ResourceManager::Size() <= RESOURCE_ACCUMULATING_MINIMUM + 1) {
+        ResourceManager::releasing = false;
+    }
 }

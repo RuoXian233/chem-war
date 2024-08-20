@@ -1,13 +1,14 @@
 #include "character.h"
 #include "lib/input.h"
+#include "lib/components.h"
 
 using namespace chem_war;
 Character *Character::sCharacter;
 
 
-Character *Character::Instance(const ResourcePack &textures) {
+Character *Character::Instance(ecs::World &world, const ResourcePack &textures) {
     if (!Character::sCharacter) {
-        Character::sCharacter = new Character;
+        Character::sCharacter = new Character(world);
         Character::sCharacter->textures = textures;
     }
     return Character::sCharacter;
@@ -18,7 +19,7 @@ Character *Character::Instance() {
     return Character::sCharacter;
 }
 
-Character::Character() {
+Character::Character(ecs::World &world) : world(world) {
     this->velocity = Vec2();
     this->acceleration = Vec2();
     this->mass = 1.0f;
@@ -26,6 +27,7 @@ Character::Character() {
     this->velocityInterval[1] = -60;
     this->velocityInterval[2] = 60;
     this->velocityInterval[3] = -60;
+    this->bullet = Bullet { idNULL };
 }
 
 void Character::Destroy() {
@@ -48,11 +50,20 @@ void Character::Prepare() {
         i++;
     }
     this->currentState = 1;
+    this->hp = this->hpMax;
+
+    SDL_Color color = {0, 255, 0, 255};
+    Vec2 direction = { 0, -20 };
+    Vec2 position = {400, 400};
+    int particle_hp = 3;
+    this->particleEffect = ParticleManager::CreateParticleLauncher(this->pos, direction, particle_hp, 16, color); 
 }
 
 void Character::SetState(int state) {
     assert(state <= this->textures.size() && "Invilid state");
     this->currentState = state;
+    auto uri = std::format("{}.{}", CHRACTER_FIGURE_DATA, this->currentState);
+    this->size = this->textureData[uri].size;
 }
 
 void Character::Render() {
@@ -67,11 +78,13 @@ void Character::Translate(const Vec2 &v) {
 void Character::Transform(const Vec2 &v) {
     auto uri = std::format("{}.{}", CHRACTER_FIGURE_DATA, this->currentState);
     this->textureData[uri].size += v;
+    this->size = this->textureData[uri].size;
 }
 
 void Character::Scale(float dx) {
     auto uri = std::format("{}.{}", CHRACTER_FIGURE_DATA, this->currentState);
     this->textureData[uri].size *= dx;
+    this->size = this->textureData[uri].size;
 }
 
 void Character::AddForce(const Vec2 &force) {
@@ -115,10 +128,29 @@ void Character::SetAcceleration(float ax, float ay) {
 }
 
 void Character::Update(float dt) {
+    if (this->velocity.Length() != 0) {
+        this->moving = true;
+    } else {
+        this->moving = false;
+    }
+
     for (const auto [name, force] : this->constantForces) {
         this->AddForce(force);
     }
     this->Translate(this->velocity * dt);
+
+    this->particleEffect->pos.x = this->pos.x + this->size.x / 2;
+    this->particleEffect->pos.y = this->pos.y;
+    if (this->attacking) {
+        ParticleManager::ShootParticle(this->particleEffect);
+    }
+
+    if (!InputManager::QueryKey(SDL_SCANCODE_SPACE)) {
+        this->StopAttack();
+    } else {
+        ecs::Querier q(this->world);
+        q.Get<components::Movement>(this->bullet.entity).pos = this->pos + Vec2(this->size.x / 2 - this->bulletWidth / 2, -this->size.y);
+    }
 }
 
 bool Character::CheckBound() {
@@ -170,5 +202,87 @@ void Character::AddMovement(Direction d) {
         }
         c->SetVelocity(Vec2(maxVelocityY, this->velocity.y));
         break;
+    }
+}
+
+Vec2 Character::GetCentrePos() {
+    return this->pos + 0.5 * this->size;
+}
+
+
+void Character::SetHp(float v) {
+    if (v >= 0 && v <= this->hpMax) {
+        this->hp = v;
+    } else if (v < 0) {
+        this->hp = 0;
+    } else {
+        this->hp = this->hpMax;
+    }
+}
+
+void Character::IncHp(float v) {
+    if (this->hp + v >= 0 && this->hp + v <= this->hpMax) {
+        this->hp += v;
+    } else if (this->hp + v < 0) {
+        this->hp = 0;
+    } else {
+        this->hp = this->hpMax;
+    }
+}
+
+void Character::DrawCollider() {
+    if (this->drawCollider) {
+        Renderer::SetDrawColor(255, 255, 55, 255);
+        Renderer::DrawRect(this->GetPos() + Vec2(2, 2), this->GetSize() + Vec2(2, 2));
+        Renderer::ClearDrawColor();
+    }
+}
+
+void Character::AddCollision(GameObject *go) {
+    this->collsions.push_back(go);
+} 
+
+void Character::ClearCollision() {
+    this->collsions.clear();
+}
+
+std::vector<GameObject *> &Character::GetCollisions() {
+    return this->collsions;
+}
+
+void Character::ColliderVisibility(bool v) {
+    this->drawCollider = v;
+}
+
+void Character::StartAttack() {
+    if (!this->attacking) {
+        ecs::Commands cmd(this->world);
+
+        this->bullet = Bullet { 
+            cmd.Spawned<components::Movement, components::SimpleCollider2D>(
+                components::Movement {
+                    Vec2(), Vec2(-320, -320),
+                },
+                components::SimpleCollider2D {
+                    "$character", this->showBulletCollider, this->pos, Vec2(bulletWidth, bulletLength),
+                    [this](auto, auto, auto, auto) {
+                        this->hits++;
+                    }
+                }   
+            )
+        };
+        cmd.Execute();
+        this->attacking = true;
+    }
+}
+
+void Character::StopAttack() {
+    if (this->attacking) {
+        ecs::Commands cmd(this->world);
+        cmd.Destroy(this->bullet.entity);
+        cmd.Execute();
+
+        this->bullet = Bullet { idNULL };
+        this->attacking = false;
     }
 }
