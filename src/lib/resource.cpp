@@ -1,6 +1,6 @@
 #include "resource.h"
 
-using namespace chem_war;
+using namespace engine;
 std::map<std::string, Resource *> ResourceManager::resourceDatabase;
 int ResourceManager::argc;
 char **ResourceManager::argv;

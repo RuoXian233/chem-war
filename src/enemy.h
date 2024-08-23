@@ -4,9 +4,9 @@
 
 
 namespace chem_war {
-    class Enemy : public GameObject {
+    class Enemy : public engine::GameObject {
     public:
-        Enemy(ecs::World &world);
+        Enemy(engine::ecs::World &world);
 
         void Update(float) override;
         virtual void Seek();
@@ -16,6 +16,7 @@ namespace chem_war {
         virtual ~Enemy();
 
         bool dead = false;
+        inline static bool showCollider = true;
     private:
         float baseSpeed = 1.6;
         float speedIncreament = 0;

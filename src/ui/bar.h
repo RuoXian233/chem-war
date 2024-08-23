@@ -2,9 +2,9 @@
 #include "../lib/ecs.h"
 
 
-namespace chem_war {
+namespace engine {
     namespace ui {
-        class Bar : public chem_war::GameObject {
+        class Bar : public engine::GameObject {
         public:
             Bar(const std::string &name, ecs::World &world, const Vec2 &pos);
         

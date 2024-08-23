@@ -6,9 +6,9 @@
 #include <functional>
 
 
-namespace chem_war {
+namespace engine {
     namespace ui {
-        class DebugPanel : public chem_war::GameObject {
+        class DebugPanel : public engine::GameObject {
         public:
             using StringValRetriever = std::function<std::string()>;
             using NumericValRetriever = std::function<float()>;
@@ -21,7 +21,7 @@ namespace chem_war {
             void AddItem(const std::string &name, StringValRetriever r);
             void AddItem(const std::string &name, NumericValRetriever n);
 
-            DebugPanel(chem_war::ecs::World &world, const Vec2 &pos);
+            DebugPanel(engine::ecs::World &world, const Vec2 &pos);
             ~DebugPanel();
 
         private:

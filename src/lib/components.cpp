@@ -1,15 +1,30 @@
 #include "components.h"
+#include "scene.h"
 
 
-void chem_war::components::MovementSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::MovementSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<Movement>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto &movementComp = q.Get<Movement>(entity);
         movementComp.pos += movementComp.velocity * Renderer::GetDeltatime();
     }
 }
 
-void chem_war::components::Texture2DRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::Texture2DRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<Texture2D>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto comp = q.Get<Texture2D>(entity);
         if (!q.Has<Movement>(entity)) {
             Renderer::RenderTexture(comp.t, comp.renderPos);
@@ -19,8 +34,15 @@ void chem_war::components::Texture2DRenderSystem(ecs::Commands &commander, ecs::
     }
 }
 
-void chem_war::components::BasicGraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::BasicGraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<BasicGraph>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto comp = q.Get<BasicGraph>(entity);
         for (auto drawCall : comp.drawCalls) {
             // Not implemented yet
@@ -28,8 +50,15 @@ void chem_war::components::BasicGraphRenderSystem(ecs::Commands &commander, ecs:
     }
 }
 
-void chem_war::components::GraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::GraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<Graph>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto comp = q.Get<Graph>(entity);
         if (comp.visible) {
             switch (comp.graphType) {
@@ -64,9 +93,16 @@ void chem_war::components::GraphRenderSystem(ecs::Commands &commander, ecs::Quer
     }
 }
 
-void chem_war::components::BasicTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::BasicTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     auto font = Renderer::GetFont();
     for (auto entity : q.Query<BasicText>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto comp = q.Get<BasicText>(entity);
         Renderer::SetDrawColor(comp.r, comp.g, comp.b, comp.a);
         auto pos = comp.dpos;
@@ -86,8 +122,7 @@ void chem_war::components::BasicTextRenderSystem(ecs::Commands &commander, ecs::
             pos.y += h + comp.margin;
             index++;
         }
-
-        // TODO: Fix direct SDL api acll
+        
         for (auto &v : cache) {
             SDL_DestroyTexture(v.textureData);
         }
@@ -95,19 +130,26 @@ void chem_war::components::BasicTextRenderSystem(ecs::Commands &commander, ecs::
     }
 }
 
-void chem_war::components::SimpleSwitchSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::SimpleSwitchSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<components::SimpleSwitch>()) {
         // TODO: Impl
     }
 }
 
-void chem_war::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     std::vector<QuadTree::ObjectWithRect> collidingEntities;
     std::vector<QuadTree::ObjectWithRect> filtedEntities;
     QuadTree qt(0, Vec2(0, 0), Vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
 
     // Filter some entities that must not be colliding
     for (auto entity : q.Query<SimpleCollider2D>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            auto scene = q.Get<SceneAssosication>(entity).sceneName;
+            if (SceneManager::GetCurrentSceneName() != scene) {
+                continue;
+            }
+        }
+
         auto pos = q.Get<Movement>(entity).pos;
         if (q.Has<Movement>(entity)) {
             pos = q.Get<Movement>(entity).pos;
@@ -142,6 +184,21 @@ void chem_war::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs:
             auto r3 = Vec2::CreateFRect(Vec2(), Vec2());
             if (SDL_IntersectFRect(&r1, &r2, &r3)) {
                 CollisionHandler(entity.id, id, item.id, collideId);
+            }
+        }
+    }
+}
+
+void engine::components::SimpleTimerSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+    for (auto entity : q.Query<SimpleTimer>()) {
+        auto dt = Renderer::GetDeltatime();
+        auto &timer = q.Get<SimpleTimer>(entity);
+        if (timer.isActivated && timer.shots < timer.maxShots) {
+            timer.current += dt;
+            if ((int) (timer.current * 1000) > timer.duration) {
+                timer.current = 0;
+                timer.callback(entity);
+                timer.shots++;
             }
         }
     }

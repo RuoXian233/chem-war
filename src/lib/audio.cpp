@@ -1,6 +1,6 @@
 #include "audio.h"
 
-using namespace chem_war;
+using namespace engine;
 Mix_Music *AudioManager::currentBGM;
 
 void AudioManager::Initialize() {

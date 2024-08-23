@@ -3,54 +3,33 @@
 #include "lib/components.h"
 #include "ui/debug_panel.h"
 #include "lib/particle.h"
+#include "lib/camera.h"
+
+#include "lib/effects.h"
 
 using namespace chem_war;
 
 bool Game::bgmPlaying;
 ecs::World Game::world;
-std::map<std::string, GameObject *> Game::objects;
 Game::State Game::state;
-std::vector<Enemy *> Game::enemies;
 
 
-void Game::AddObject(GameObject *go) {
-    Game::objects.insert(std::make_pair(go->GetId(), go));
-}
-
-void Game::Prepare(int argc, char **argv) {
-    Renderer::Initialize();
-    InputManager::Initialize();
-    Renderer::CreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chem War");
-    InputManager::RegisterHandler(SDL_KEYDOWN, Game::OnKeyDown);
-    ResourcePack pack;
-    ResourceManager::Initialize(argc, argv);
-
-    Renderer::LoadFont("/usr/share/fonts/wenquanyi/wqy-microhei/wqy-microhei.ttc", 16);
-    // AudioManager::Initialize();
-
-    for (int i = 1; i <= CHARACTER_FIGURES_COUNT; i++) {
-        auto resourceURI = std::format("{}.{}", CHARACTER_FIGURE_URI, i);
-        pack.emplace_back(ResourceManager::Load(
-            resourceURI, ResourceType::Texture,
-            std::format("{}/{}.{}", CHARACTER_FIGURE_PATH, resourceURI, CHARACTER_FIGURE_EXT)
-        ));
-    }
-
-    // ResourceManager::Load("bgm", ResourceType::Music, std::format("{}/{}.flac", BGM_PATH, "bgm"));
-
-    Character::Instance(Game::world, pack)->Prepare();
+void GameScene::OnFirstEnter() {
     auto c = Character::Instance();
+    InputManager::RegisterHandler(SDL_KEYDOWN, this, GameScene::OnKeyDown);
+
     c->Transform(Vec2(-480, -480));
 
     for (int i = 0; i < 10; i++) {
-        enemies.emplace_back(new Enemy(Game::world));
+        enemies.emplace_back(new Enemy(this->world));
     }
-    auto dbgPanel = new ui::DebugPanel(Game::world, Vec2());
+
+    auto dbgPanel = new ui::DebugPanel(this->world, Vec2());
     dbgPanel->AddItem("character.velocity", [=]() { return c->GetVelocity().Length(); });
     dbgPanel->AddItem("character.pos", [=]() { return c->GetPos().ToString(); });
 
     for (int i = 0; i < 10; i++) {
-        dbgPanel->AddItem(std::format("enemy{}.<movement>", i), [=]() { 
+        dbgPanel->AddItem(std::format("enemy{}.<movement>", i), [=, this]() { 
             if (enemies[i]) {
                 const auto &comp = enemies[i]->GetComponent<components::Movement>(); 
             return std::format("inc={}, v={}, p={}, d(character)={}", enemies[i]->GetSpeedIncreament(), comp.velocity.ToString(), comp.pos.ToString(), (c->GetPos() - comp.pos).ToString());
@@ -58,8 +37,8 @@ void Game::Prepare(int argc, char **argv) {
             return std::string("null");
         });
     }
-    
-    
+
+    dbgPanel->AddItem("global.score", [=]() { return Game::score; });
     dbgPanel->AddItem("global.dt", [=]() { return Renderer::GetDeltatime(); });
     dbgPanel->AddItem("render.font", [=]() { return std::format("{}", (void *) Renderer::GetFont()); });
     dbgPanel->AddItem("render.size", [=]() { return Renderer::GetRenderSize().ToString(); });
@@ -74,21 +53,107 @@ void Game::Prepare(int argc, char **argv) {
     });
     dbgPanel->AddItem("character.bullet.hits", [=]() { return c->hits; });
 
-    auto bar = new ui::Bar("character.hp", Game::world, Vec2(800, 320));
+    auto bar = new ui::Bar("character.hp", this->world, Vec2(800, 320));
     bar->Config(2, { 255, 0, 0, 255 }, { 255, 255, 255, 255 }, Vec2(c->GetSize().x, 16));
     bar->AttachValue([=]() { return c->GetHp() / c->GetMaxHp(); });
+   
+    this->AddObject(dbgPanel);
+    this->AddObject(bar);
 
-    Game::AddObject(dbgPanel);
-    Game::AddObject(bar);
+    EffectSystem::SetTargetScene(this);
+
+}
+
+void DeadScene::OnFirstEnter() {
+    Scene::OnFirstEnter();
+    auto gameScene = SceneManager::GetScene("game");
+    auto dbgPanel = gameScene->GetObject<ui::DebugPanel>("ui.debug.panel");
+    dbgPanel->Hide(!dbgPanel->IsHide());
+    this->AddBorrowedObject(dbgPanel);
+}
+
+void GameScene::Update(float dt) {
+    auto c = Character::Instance();
+    Scene::Update(dt);
+    c->ClearCollision();
+
+    c->CheckMovement();
+    c->Update(dt);
+    Game::score += dt * 100 + c->hits * 10;
+    c->hits = 0;
+
+    for (auto &&enemy : enemies) {
+        if (enemy && !enemy->dead) {
+            enemy->Update(dt);
+        } else if (enemy) {
+            delete enemy;
+            enemy = nullptr;
+        }
+    }
+    auto bar = this->GetObject<ui::Bar>("ui.bar.character.hp");
+    bar->GetComponent<components::Movement>().pos = c->GetPos() + Vec2(0, -20);
+    this->RespawnEnemies();
+}
+
+void GameScene::Render() {
+    Scene::Render();
+    auto c = Character::Instance();
+
+    c->Render();
+    c->DrawCollider();
+
+    for (auto &&enemy : enemies) {
+        if (enemy && !enemy->dead) {
+            enemy->Render();
+        }
+    }
+}
+
+void DeadScene::Render() {
+    Scene::Render();
+    Renderer::SetDrawColor(255, 100, 100, 255);
+    Renderer::ChangeFontSize(32);
+    Renderer::RenderTexture(Renderer::Text(std::format("You Died! Total Score: {}", Game::score)), Vec2(500, 300));
+    Renderer::ChangeFontSize(16);
+    Renderer::ClearDrawColor();
+}
+
+void Game::Prepare(int argc, char **argv) {
+    Renderer::Initialize();
+    InputManager::Initialize();
+    Renderer::CreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Chem War");
+    Camera::Initalize();
+    Camera::Enabled(true);
+    ResourceManager::Initialize(argc, argv);
+    ResourcePack pack;
+    Renderer::LoadFont("/usr/share/fonts/wenquanyi/wqy-microhei/wqy-microhei.ttc", 16);
+    // AudioManager::Initialize();
+    for (int i = 1; i <= CHARACTER_FIGURES_COUNT; i++) {
+        auto resourceURI = std::format("{}.{}", CHARACTER_FIGURE_URI, i);
+        pack.emplace_back(ResourceManager::Load(
+            resourceURI, ResourceType::Texture,
+            std::format("{}/{}.{}", CHARACTER_FIGURE_PATH, resourceURI, CHARACTER_FIGURE_EXT)
+        ));
+    }
+    Character::Instance(Game::world, pack)->Prepare();
+
+    // ResourceManager::Load("bgm", ResourceType::Music, std::format("{}/{}.flac", BGM_PATH, "bgm"));
+    auto gameScene = new GameScene(Game::world);
+    auto deadScene = new DeadScene(Game::world);
+    SceneManager::Initialize();
+    SceneManager::AddScene("game", gameScene);
+    SceneManager::AddScene("dead", deadScene);
 
     Game::world.AddSystem(components::MovementSystem)
                .AddSystem(components::GraphRenderSystem)
                .AddSystem(components::BasicTextRenderSystem)
                .AddSystem(components::Texture2DRenderSystem)
                .AddSystem(components::SimpleCollider2DSystem)
+               .AddSystem(components::SimpleTimerSystem)
                .Startup();
 
     ParticleManager::Initialize();
+    EffectSystem::Initalize();
     
     Vec2 gravity = { 0, 0 };
     ParticleManager::CreateParticleSystem(gravity);
@@ -96,66 +161,40 @@ void Game::Prepare(int argc, char **argv) {
 
 void Game::Run() {
     // AudioManager::PlayBGM();
-    auto bar = Game::GetObject<ui::Bar>("ui.bar.character.hp");
     Game::bgmPlaying = false;
     Game::state = Game::State::Run;
+    SceneManager::SwitchScene("game");
+
     while (!InputManager::ShouldQuit()) {
         Renderer::Clear();
         InputManager::Update();
         float dt = Renderer::GetDeltatime();
-        if (Game::state == Game::State::Run) {
-            auto c = Character::Instance();
-            c->hits = 0;
-            Game::world.Update();
-
-            c->CheckMovement();
-            c->Update(dt);
-            c->DrawCollider();
-            c->Render();
-            c->ClearCollision();
-
-            ParticleManager::Update(dt);
-            bar->GetComponent<components::Movement>().pos = c->GetPos() + Vec2(0, -20);
-
-            if (c->GetHp() <= 0) {    
-                Game::state = Game::State::Dead;
-            }
-
-             for (auto &&[_, o] : Game::objects) {
-                o->Update(dt);
-                o->Render();
-            }
-
-            for (auto &&enemy : Game::enemies) {
-                if (enemy && !enemy->dead) {
-                    enemy->Update(dt);
-                    enemy->Render();
-                } else if (enemy) {
-                    delete enemy;
-                    enemy = nullptr;
-                }
-            }
-            Game::RespawnEnemies();
-        }
-
-        if (Game::state == Game::State::Dead) {
-            Renderer::SetDrawColor(255, 100, 100, 255);
-            Renderer::ChangeFontSize(32);
-            Renderer::RenderTexture(Renderer::Text("You Died!"), Vec2(600, 300));
-            Renderer::ChangeFontSize(16);
-            Renderer::ClearDrawColor();
-        }
         
+        Game::world.Update();
+
+        SceneManager::Update(dt);
+        SceneManager::Render();
+        ParticleManager::Update(dt);
+
+        auto c = Character::Instance();
+        if (c->GetHp() <= 0 && Game::state == Game::State::Run) {    
+            Game::state = Game::State::Dead;
+            Character::Instance()->OnDie();
+            SceneManager::SwitchScene("dead");
+        }
+
+        EffectSystem::Update(dt);
+        EffectSystem::Render();
+
         ResourceManager::Check();
         Renderer::Update();
     }
 }
 
 void Game::Quit() {
-    for (auto &&[_, obj] : Game::objects) {
-        delete obj;
-    }
-
+    Camera::Finalize();
+    EffectSystem::Finalize();
+    SceneManager::Finalize();
     ParticleManager::Finalize();
     Game::world.Shutdown();
     // AudioManager::StopBGM();
@@ -166,9 +205,9 @@ void Game::Quit() {
     Renderer::Finalize();
 }
 
-
-void Game::OnKeyDown(const SDL_Event &e) {
+void GameScene::OnKeyDown(void *gameScene, const SDL_Event &e) {
     auto c = Character::Instance();
+    auto scene = static_cast<GameScene *>(gameScene);
 
     if (InputManager::QueryKey(SDL_SCANCODE_W)) {
         c->AddMovement(Direction::Up);
@@ -182,27 +221,6 @@ void Game::OnKeyDown(const SDL_Event &e) {
     if (InputManager::QueryKey(SDL_SCANCODE_D)) {
         c->AddMovement(Direction::Right);
     }
-    // if (InputManager::KeyDown(e, SDLK_1)) {
-    //     c->SetState(1);
-    // }
-    // if (InputManager::KeyDown(e, SDLK_2)) {
-    //     c->SetState(2);
-    // }
-    // if (InputManager::KeyDown(e, SDLK_3)) {
-    //     c->SetState(3);
-    // }
-    // if (InputManager::KeyDown(e, SDLK_4)) {
-    //     c->SetState(4);
-    // }
-    // if (InputManager::KeyDown(e, SDLK_5)) {
-    //     c->SetState(5);
-    // }
-    // if (InputManager::KeyDown(e, SDLK_UP)) {
-    //     c->Transform(Vec2(10, 10));
-    // }
-    // if (InputManager::KeyDown(e, SDLK_DOWN)) {
-    //     c->Transform(Vec2(-10, -10));
-    // }
     if (InputManager::QueryKey(SDL_SCANCODE_SPACE)) {
         c->StartAttack();
     }
@@ -224,26 +242,34 @@ void Game::OnKeyDown(const SDL_Event &e) {
         // }
     }
     if (InputManager::KeyDown(e, SDLK_F3)) {
-        auto o = Game::GetObject<ui::DebugPanel>("ui.debug.panel");
+        auto o = scene->GetObject<ui::DebugPanel>("ui.debug.panel");
         bool state = !o->IsHide();
         auto c = Character::Instance();
 
         c->ColliderVisibility(state);
         o->Hide(state);
-        ecs::Querier q(Game::world);
+        ecs::Querier q(scene->world);
         c->showBulletCollider = state;
 
-        for (auto o : Game::enemies) {
+        for (auto o : scene->enemies) {
             if (o) {
                 o->GetComponent<components::SimpleCollider2D>().showCollider = state;
             }
         }
+        Enemy::showCollider = state;
+    }
+
+    if (InputManager::KeyDown(e, SDLK_e)) {
+        effects::SceneFadeOut(640);
+    }
+    if (InputManager::KeyDown(e, SDLK_q)) {
+        effects::Shine(160, { 255, 255, 0, 255 }, 3);
     }
 }
 
-void Game::RespawnEnemies() {
+void GameScene::RespawnEnemies() {
     int enemyCount = 0;
-    for (const auto enemy : Game::enemies) {
+    for (const auto enemy : this->enemies) {
         if (enemy) {
             enemyCount++;
         }
@@ -251,8 +277,8 @@ void Game::RespawnEnemies() {
 
     if (enemyCount < 1) {
         enemies.clear();
-        for (int i = 0; i < maxEnemies; i++) {
-            enemies.emplace_back(new Enemy(Game::world));
+        for (int i = 0; i < Game::maxEnemies; i++) {
+            enemies.emplace_back(new Enemy(this->world));
         }
     }
 }

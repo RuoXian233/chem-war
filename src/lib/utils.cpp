@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 
 
-namespace chem_war {
+namespace engine {
     [[noreturn]] void Fatal(const std::string &msg, bool internal) {
         std::cerr << "Fatal: " << msg << std::endl;
         if (internal) {
@@ -41,6 +41,14 @@ namespace chem_war {
     void operator*=(Vec2 &self, float other) {
         self.x = (int) (self.x * other);
         self.y = (int) (self.y * other);
+    }
+
+    Vec2 operator-(const Vec2 &self) {
+        return Vec2(-self.x, -self.y);
+    }
+
+    float operator*(const Vec2 &self, const Vec2 &other) {
+        return self.x * other.x + self.y * other.y;
     }
 
     SDL_Rect Vec2::CreateRect(const Vec2 &a, const Vec2 &b) {

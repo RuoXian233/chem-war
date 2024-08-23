@@ -6,6 +6,8 @@
 #include "lib/particle.h"
 #include "ui/bar.h"
 
+using namespace engine;
+
 
 namespace chem_war {
     class Character final {
@@ -51,6 +53,7 @@ namespace chem_war {
 
         void StartAttack();
         void StopAttack();
+        void OnDie();
 
         // debug use
         void DrawCollider();

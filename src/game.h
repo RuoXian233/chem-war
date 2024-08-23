@@ -4,12 +4,43 @@
 #include "lib/input.h"
 #include "lib/audio.h"
 #include "lib/ecs.h"
+#include "lib/scene.h"
 #include "enemy.h"
 
 #include "character.h"
 
+using namespace engine;
+
 
 namespace chem_war {
+    class GameScene final : public Scene {
+    public:
+        GameScene(ecs::World &world) : Scene(world) {}
+        void OnFirstEnter() override;
+        void Update(float dt) override;
+        void Render() override;
+
+        inline void OnAdd() override {};
+        inline void OnRemove() override {};
+
+        void RespawnEnemies();
+        static void OnKeyDown(void *scene, const SDL_Event &e);
+
+    private:
+        std::vector<Enemy *> enemies;
+    }; 
+
+    class DeadScene final : public Scene {
+    public:
+        DeadScene(ecs::World &world) : Scene(world) {}
+        void OnFirstEnter() override;
+        void Render() override;
+
+        inline void OnAdd() override {};
+        inline void OnRemove() override {};
+        inline void Exit() override {};
+    };
+
     class Game final {
     public:
         enum class State {
@@ -19,25 +50,15 @@ namespace chem_war {
         static void Prepare(int argc, char **argv);
         static void Run();
         static void Quit();
-        template<typename T = GameObject>
-        static T *GetObject(const std::string &id) {
-            assert(Game::objects.find(id) != Game::objects.end() && "Object not exists");
-            return reinterpret_cast<T *>(Game::objects[id]);
-        }
 
-        static void AddObject(GameObject *go);
+        static const int maxEnemies = 32;
+        static inline int score = 0;
 
-        static void RespawnEnemies();
-
-        static void OnKeyDown(const SDL_Event &e);
     private:
         static State state;
         static bool bgmPlaying;
         static ecs::World world;
-        static std::map<std::string, GameObject *> objects;
-        static std::vector<Enemy *> enemies;
-
-        static const int maxEnemies = 10;
+        std::vector<std::string> scenes;
     };
 }
 

@@ -8,8 +8,10 @@
 #include <SDL2/SDL.h>
 #include <vector>
 
+#define SRAND() srand((unsigned) (nullptr))
 
-namespace chem_war {
+
+namespace engine {
     bool utils_MapHasKey(const auto &map, const auto &key) {
         return (map.find(key) != map.end());
     }
@@ -28,6 +30,14 @@ namespace chem_war {
 
         inline float Length() const {
             return std::sqrt(this->x * this->x + this->y * this->y);
+        }
+
+        inline Vec2 Normalize() const {
+            float length = this->Length();
+            if (length == 0) {
+                return Vec2(0, 0);
+            }
+            return Vec2(this->x / length, this->y / length);
         }
 
         static Vec2 Rotate(const Vec2 &v, float angle);
@@ -71,7 +81,13 @@ namespace chem_war {
     Vec2 operator*(const Vec2 &self, float other);
     void operator*=(Vec2 &self, float other);
     Vec2 operator*(float self, const Vec2 &other);
+    float operator*(const Vec2 &self, const Vec2 &other);
+    Vec2 operator-(const Vec2 &self);
 
     std::vector<std::string> StringSplit(const std::string &str, const std::string &splitter);
     bool PointInRect(const Vec2 &point, const Vec2 &xy, const Vec2 &wh);
+        
+    int RandInt(int maximum);
+    int RandInt(int minimum, int maximum);
+    float Random();
 }

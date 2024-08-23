@@ -2,16 +2,17 @@
 #include "../lib/components.h"
 
 
-using namespace chem_war::ui;
+using namespace engine::ui;
 
-Bar::Bar(const std::string &name, chem_war::ecs::World &world, const Vec2 &pos) : GameObject("ui.bar." + name, world) {
+Bar::Bar(const std::string &name, engine::ecs::World &world, const Vec2 &pos) : GameObject("ui.bar." + name, world) {
     ecs::Commands cmd(this->world);
-    this->entityId = cmd.Spawned<components::Movement, components::Texture2D>(
+    this->entityId = cmd.Spawned<components::Movement, components::Texture2D, components::SceneAssosication>(
         components::Movement { Vec2(), pos },
         components::Texture2D { 
             Renderer::Texture { nullptr, Vec2() },
             Vec2()
-        }
+        },
+        components::SceneAssosication { "game" }
     );
     cmd.Execute();
 }

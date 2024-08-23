@@ -10,7 +10,7 @@
 
 #include "utils.hpp"
 
-namespace chem_war {
+namespace engine {
     enum class ResourceType {
         Texture,
         RenderData,

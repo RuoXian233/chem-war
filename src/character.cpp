@@ -153,6 +153,13 @@ void Character::Update(float dt) {
     }
 }
 
+void Character::OnDie() {
+    ecs::Querier q(this->world);
+    if (this->bullet.entity != idNULL && q.Has<components::SimpleCollider2D>(this->bullet.entity)) {
+        q.Get<components::SimpleCollider2D>(this->bullet.entity).showCollider = false;
+    }
+}
+
 bool Character::CheckBound() {
     return true;
 }

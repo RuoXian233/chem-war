@@ -1,21 +1,24 @@
 #include "debug_panel.h"
 #include "../lib/components.h"
 
-using namespace chem_war::ui;
+using namespace engine::ui;
 
 
-DebugPanel::DebugPanel(chem_war::ecs::World &world, const Vec2 &pos) : 
-    chem_war::GameObject(DebugPanel::DEFUALT_DEBUG_PANEL_ID, world) {
-        chem_war::ecs::Commands cmd(this->world);
-        this->entityId = cmd.Spawned<components::BasicText>(
+DebugPanel::DebugPanel(engine::ecs::World &world, const Vec2 &pos) : 
+    engine::GameObject(DebugPanel::DEFUALT_DEBUG_PANEL_ID, world) {
+        engine::ecs::Commands cmd(this->world);
+        this->entityId = cmd.Spawned<components::BasicText, components::SimpleTimer>(
             components::BasicText { 
                 {},
                 4,
                 255, 255, 255, 255,
                 pos
-            }
+            },
+            components::SimpleTimer {}
         );
         cmd.Execute();
+
+        // this->GetComponent<components::SimpleTimer>().Configure(10, 1000, [](ecs::Entity) { std::cout << "Debug Panel ticked" << std::endl; });
 }
 
 void DebugPanel::AddItem(const std::string &name, NumericValRetriever n) {

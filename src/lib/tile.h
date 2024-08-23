@@ -1,4 +1,11 @@
-namespace chem_war {
+#pragma once
+
+#include <SDL2/SDL.h>
+#include "utils.hpp"
+#include <vector>
+
+
+namespace engine {
     struct Tile {
         int x;
         int y;

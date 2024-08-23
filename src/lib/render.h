@@ -3,12 +3,14 @@
 #include <SDL2/SDL_ttf.h>
 #include <memory>
 #include "utils.hpp"
+#include "camera.h"
 
 
-namespace chem_war {
+namespace engine {
     class Renderer final {
     public:
-        using Vec2 = ::chem_war::Vec2;
+        using Vec2 = ::engine::Vec2;
+        using Color = SDL_Color;
 
         struct Texture {
             SDL_Texture *textureData;
@@ -33,6 +35,10 @@ namespace chem_war {
         static Texture CreateTexture(SDL_Surface *t);
         static void RenderTexture(const Texture &t, const Vec2 &pos);
         static void Update();
+        static void RenderAbsolute(const Texture &t, const Vec2 &pos);
+
+        static void EnableAlphaBlend();
+        static void DisableAlphaBlend();
 
         static void Draw(const std::string &drawCall);
         static void ClearDrawColor();

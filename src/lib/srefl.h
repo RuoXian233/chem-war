@@ -23,7 +23,7 @@ static constexpr auto superClasses = std::make_tuple(__VA_ARGS__);
 #define SREFL_END_CLASS() };
 
 
-namespace chem_war {
+namespace engine {
     namespace srefl {
         template<typename T>
         struct Reflected;

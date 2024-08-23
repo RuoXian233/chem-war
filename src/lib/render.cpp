@@ -3,7 +3,7 @@
 #include "resource.h"
 #include "consts.h"
 
-using namespace chem_war;
+using namespace engine;
 
 SDL_Renderer *Renderer::renderer;
 SDL_Window *Renderer::window;
@@ -74,6 +74,16 @@ Renderer::Texture Renderer::CreateTexture(SDL_Surface *s) {
 }
 
 void Renderer::RenderTexture(const Renderer::Texture &t, const Vec2 &pos) {
+    SDL_Rect r;
+    if (Camera::GetState().enabled) {
+        r = { (int) (pos.x - Camera::GetState().pos.x), (int) (pos.y - Camera::GetState().pos.y), (int) t.size.x, (int) t.size.y };
+    } else {
+        r = { (int) pos.x, (int) pos.y, (int) t.size.x, (int) t.size.y };
+    }
+    SDL_RenderCopy(Renderer::renderer, t.textureData, nullptr, &r);
+}
+
+void Renderer::RenderAbsolute(const Renderer::Texture &t, const Vec2 &pos) {
     SDL_Rect r = { (int) pos.x, (int) pos.y, (int) t.size.x, (int) t.size.y };
     SDL_RenderCopy(Renderer::renderer, t.textureData, nullptr, &r);
 }
@@ -86,13 +96,33 @@ void Renderer::Draw(const std::string &drawCall) {
 
 }
 
+void Renderer::EnableAlphaBlend() {
+    SDL_SetRenderDrawBlendMode(Renderer::renderer, SDL_BLENDMODE_BLEND);
+}
+
+void Renderer::DisableAlphaBlend() {
+    SDL_SetRenderDrawBlendMode(Renderer::renderer, SDL_BLENDMODE_NONE);
+}
+
 void Renderer::DrawRect(const Vec2 &pos, const Vec2 &size) {
-    SDL_Rect r = Vec2::CreateRect(pos, size);
+    SDL_Rect r;
+    if (Camera::GetState().enabled) {
+        auto transformedPos = pos - Camera::GetState().pos;
+        r = Vec2::CreateRect(transformedPos, size);
+    } else {
+        SDL_Rect r = Vec2::CreateRect(pos, size);
+    }
     SDL_RenderDrawRect(Renderer::renderer, &r);
 }
 
 void Renderer::FillRect(const Vec2 &pos, const Vec2 &size) {
-    SDL_Rect r = Vec2::CreateRect(pos, size);
+    SDL_Rect r;
+    if (Camera::GetState().enabled) {
+        auto transformedPos = pos - Camera::GetState().pos;
+        r = Vec2::CreateRect(transformedPos, size);
+    } else {
+        SDL_Rect r = Vec2::CreateRect(pos, size);
+    }
     SDL_RenderFillRect(Renderer::renderer, &r);
 }
 
@@ -164,14 +194,19 @@ Vec2 Renderer::GetRenderSize() {
 }
 
 void Renderer::DrawCircle(const Vec2 &pos, int radius, float delta) {
+    auto drawPos = pos;
+    if (Camera::GetState().enabled) {
+        drawPos = pos - Camera::GetState().pos;
+    }
+
     float angle = 0;
     for (int i = 0; i < 360 / delta; i++){
         float prevradian = DEG_TO_RAD(angle), nextradian = DEG_TO_RAD(angle + delta);
         SDL_RenderDrawLine(Renderer::renderer, 
-            pos.x + radius * cosf(prevradian),
-            pos.y + radius * sinf(prevradian),
-            pos.x + radius * cosf(nextradian),
-            pos.y + radius * sinf(nextradian)
+            drawPos.x + radius * cosf(prevradian),
+            drawPos.y + radius * sinf(prevradian),
+            drawPos.x + radius * cosf(nextradian),
+            drawPos.y + radius * sinf(nextradian)
         );
         angle += delta;
     }

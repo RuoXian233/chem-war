@@ -1,15 +1,15 @@
 #include "input.h"
 
-using namespace chem_war;
+using namespace engine;
 
 bool InputManager::shouldQuit;
 SDL_Event InputManager::currentEvent;
-std::map<Uint32, InputManager::EventHandler> InputManager::handlers;
+std::map<Uint32, std::pair<void *, InputManager::EventHandler>> InputManager::handlers;
 
 
 void InputManager::Initialize() {
     InputManager::shouldQuit = false;
-    InputManager::handlers = std::map<Uint32, InputManager::EventHandler>();
+    InputManager::handlers = decltype(InputManager::handlers)();
 
     srand((unsigned) time(nullptr));
 }
@@ -21,9 +21,14 @@ void InputManager::Update() {
         }
 
         if (utils_MapHasKey(InputManager::handlers, InputManager::currentEvent.type)) {
-            InputManager::handlers.at(InputManager::currentEvent.type)(InputManager::currentEvent);
+            auto [listener, handler] = InputManager::handlers.at(InputManager::currentEvent.type);
+            handler(listener, InputManager::currentEvent);
         }
     }
+}
+
+void InputManager::ClearHandlers() {
+    InputManager::handlers.clear();
 }
 
 void InputManager::Finalize() {}
@@ -44,11 +49,11 @@ bool InputManager::MouseDown(const SDL_Event &e, int button) {
     return e.button.button == button;
 }
 
-void InputManager::RegisterHandler(SDL_EventType type, const InputManager::EventHandler &handler) {
+void InputManager::RegisterHandler(SDL_EventType type, void *listener, const InputManager::EventHandler &handler) {
     if (utils_MapHasKey(InputManager::handlers, type)) {
         assert(false && "Event type is already registered");
     }
-    InputManager::handlers.insert(std::make_pair(type, handler));
+    InputManager::handlers.insert(std::make_pair(type, std::make_pair(listener, handler)));
 }
 
 bool InputManager::QueryKey(SDL_Scancode key) {

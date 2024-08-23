@@ -12,7 +12,7 @@
 #define assertm(cond, msgf) assert((cond) && msgf)
 
 
-namespace chem_war {
+namespace engine {
     namespace ecs {
         using ComponentID = uint32_t;
         using Entity = uint32_t;

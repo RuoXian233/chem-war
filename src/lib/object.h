@@ -4,7 +4,7 @@
 #include "render.h"
 
 
-namespace chem_war {
+namespace engine {
     class GameObject {
     public:
         GameObject(const std::string &id, ecs::World &world, ecs::Entity entityId = ecs::SparseSet<ecs::Entity, 32>::null);

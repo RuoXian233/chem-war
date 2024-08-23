@@ -2,6 +2,7 @@
 #include "lib/components.h"
 
 using namespace chem_war;
+using namespace engine;
 
 
 Enemy::Enemy(ecs::World &world) : GameObject(std::format("enemy {}", (void *) this), world) {
@@ -30,16 +31,17 @@ Enemy::Enemy(ecs::World &world) : GameObject(std::format("enemy {}", (void *) th
             assert(false);
     }
 
-    this->entityId = cmd.Spawned<components::Movement, components::Texture2D, components::SimpleCollider2D>(
+    this->entityId = cmd.Spawned<components::Movement, components::Texture2D, components::SimpleCollider2D, components::SceneAssosication>(
         components::Movement { Vec2(), generatePos },
         components::Texture2D { t, Vec2() },
-        components::SimpleCollider2D { "$enemy", true, Vec2(), t.size, [this](auto, auto, auto id, auto) {
+        components::SimpleCollider2D { "$enemy", Enemy::showCollider, Vec2(), t.size, [this](auto, auto, auto id, auto) {
             if (id == "$character") {
                 this->dead = true;
             } else {
                 this->speedIncreament += this->speedIncreamenRate;
             }
-        } }
+        } },
+        components::SceneAssosication { "game" }
     );
     this->c = Character::Instance();
     cmd.Execute();

@@ -1,7 +1,7 @@
 #include "particle.h"
 
 
-using namespace chem_war;
+using namespace engine;
 ParticleSystem *ParticleManager::world;
 std::vector<ParticleLauncher*> ParticleManager::particleLaunchers;
 
@@ -107,6 +107,7 @@ Particle *ParticleManager::GetNextUndeadParticle(int *idx){
 void ParticleManager::DrawParticle(Particle *particle) {
     Renderer::SetDrawColor(particle->color);
     Renderer::DrawCircle(particle->pos, ParticleManager::particleRadius);
+    Renderer::ClearDrawColor();
 }
 
 void ParticleManager::ShootParticle(ParticleLauncher *launcher){

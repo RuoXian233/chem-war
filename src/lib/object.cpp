@@ -1,40 +1,40 @@
 #include "object.h"
 
 
-chem_war::GameObject::GameObject(const std::string &id, ecs::World &world, ecs::Entity entityId) : id(id), world(world) {
+engine::GameObject::GameObject(const std::string &id, ecs::World &world, ecs::Entity entityId) : id(id), world(world) {
     this->entityId = entityId;
 }
 
-std::string chem_war::GameObject::GetId() const {
+std::string engine::GameObject::GetId() const {
     return this->id;
 }
 
-void chem_war::GameObject::AddChildren(GameObject *go) {
+void engine::GameObject::AddChildren(GameObject *go) {
     this->childrens.push_back(go);
     go->SetParent(this);
 }
 
-void chem_war::GameObject::RemoveChildrens() {
+void engine::GameObject::RemoveChildrens() {
     this->childrens.clear();
 }
 
-void chem_war::GameObject::Update(float dt) {
+void engine::GameObject::Update(float dt) {
     for (auto &&children : this->childrens) {
         children->Update(dt);
     }
 }
 
-void chem_war::GameObject::Render() {
+void engine::GameObject::Render() {
     for (auto &&children : this->childrens) {
         children->Render();
     }
 }
 
-void chem_war::GameObject::SetParent(GameObject *go) {
+void engine::GameObject::SetParent(GameObject *go) {
     this->parent = go;
 }
 
-chem_war::GameObject::~GameObject() {
+engine::GameObject::~GameObject() {
     ecs::Commands cmd(this->world);
     if (this->entityId != ecs::SparseSet<ecs::Entity, 32>::null) {
         cmd.Destroy(this->entityId);    

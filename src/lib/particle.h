@@ -2,7 +2,7 @@
 #include "render.h"
 
 
-namespace chem_war {
+namespace engine {
     struct Particle {
         int hp;
         Vec2 direction;
@@ -26,8 +26,6 @@ namespace chem_war {
         int num;
         Vec2 pos;
     };
-
-    
 
 
     class ParticleManager final {

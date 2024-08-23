@@ -3,7 +3,7 @@
 #include "render.h"
 
 
-namespace chem_war {
+namespace engine {
     namespace components {
         struct Movement {
             Vec2 velocity;
@@ -55,6 +55,33 @@ namespace chem_war {
             std::function<void(const std::string &, ecs::Entity, const std::string &, ecs::Entity)> onCollide;
         };
 
+        struct SimpleTimer {
+            int shots = 0;
+            int maxShots;
+            bool isActivated = true;
+            uint32_t duration;
+            float current = 0;
+            std::function<void(ecs::Entity)> callback;
+
+            inline void Configure(int maxShots, uint32_t duration, std::function<void(ecs::Entity)> callback) {
+                this->maxShots = maxShots;
+                this->duration = duration;
+                this->callback = callback;
+            }
+        
+            inline void Clear() {
+                this->shots = 0;
+                this->isActivated = true;
+                this->current = 0;
+            }
+        };
+
+        struct SceneAssosication {
+            std::string sceneName;
+        };
+
+        struct IndivisualTimer {};
+
         void MovementSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void Texture2DRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void BasicGraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
@@ -62,5 +89,6 @@ namespace chem_war {
         void BasicTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void SimpleSwitchSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void SimpleCollider2DSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
+        void SimpleTimerSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
     }
 }
