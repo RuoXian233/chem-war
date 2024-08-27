@@ -1,6 +1,5 @@
 #include "game.h"
 #include "lib/drefl.h"
-#include "lib/srefl.h"
 
 
 #undef main

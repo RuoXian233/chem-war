@@ -1,12 +1,17 @@
 #include "particle.h"
-
+#include "log.h"
 
 using namespace engine;
 ParticleSystem *ParticleManager::world;
 std::vector<ParticleLauncher*> ParticleManager::particleLaunchers;
 
+static engine::Logger logger("ParticleManager");
+
+
 void ParticleManager::Initialize() {
     ParticleManager::world = nullptr;
+    INFO("Particle system initialized");
+    logger.SetDisplayLevel(Logger::Level::Debug);
 }
 
 ParticleSystem *ParticleManager::GetParticleSystem() {
@@ -23,6 +28,8 @@ void ParticleManager::CreateParticleSystem(const Vec2 &gravity) {
         world->gravity = gravity;
         world->particleNum = WORLD_PARTICAL_INIT_NUM;
         world->particles = new Particle[WORLD_PARTICAL_INIT_NUM];
+
+        DEBUG_F("Particle system: gravity = {}, particleNum = {}, particles = {}", gravity.ToString(), world->particleNum, (void *) world->particles);
 
         for (int i = 0; i < WORLD_PARTICAL_INIT_NUM; i++) {
             world->particles[i].isDead = true;
@@ -45,13 +52,18 @@ ParticleLauncher *ParticleManager::CreateParticleLauncher(const Vec2 &pos, const
     launcher->pos = pos;
     launcher->world = ParticleManager::world;
 
+    INFO("Creating a new particle launcher");
+    DEBUG_F("{}", (void *) launcher);
+    DEBUG_F("pos = {}, shootDirection = {}, particleHpMax = {}, halfDegree = {}, color = {}, num = {}", pos.ToString(), shootDirection.ToString(), particleHpMax, halfDegree, color.r, color.g, color.b, color.a, num);
     ParticleManager::particleLaunchers.push_back(launcher);
+    DEBUG_F("Current {} launchers", ParticleManager::particleLaunchers.size());
     return launcher;
 }
 
 void ParticleManager::IncreaseParticleSystemCapacity() {
     ParticleManager::world->particles = (Particle *) realloc(ParticleManager::world->particles,
     sizeof(Particle) * (ParticleManager::world->particleNum + PARTICAL_SINK_INC));
+    DEBUG_F("Particle system capacity increased to {}", ParticleManager::world->particleNum + PARTICAL_SINK_INC);
 
     for (int i = ParticleManager::world->particleNum - 1; i < ParticleManager::world->particleNum + PARTICAL_SINK_INC; i++) {
         ParticleManager::world->particles[i].isDead = true;
@@ -157,6 +169,8 @@ void ParticleManager::Update(float dt){
 
 void ParticleManager::Finalize() {
     for (auto launcher : ParticleManager::particleLaunchers) {
+        DEBUG_F("Deleting particle launcher {}", (void *) launcher);
         delete launcher;
     }
+    INFO("Particle system finalized");
 }

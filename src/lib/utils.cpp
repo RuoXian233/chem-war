@@ -72,18 +72,18 @@ namespace engine {
     std::vector<std::string> StringSplit(const std::string &str, const std::string &splitter) {
         std::vector<std::string> tokens;
         if (str != splitter && str.length() >= splitter.length()) {
-            std::string splitter = splitter;        
-            std::string str = str;
-            str += splitter;
+            std::string _splitter = splitter;        
+            std::string _str = str;
+            _str += _splitter;
 
-            size_t pos = str.find(splitter);
-            int step = splitter.length();
+            size_t pos = _str.find(_splitter);
+            int step = _splitter.length();
 
             while (pos != str.npos) {
-                std::string temp = str.substr(0, pos);
+                std::string temp = _str.substr(0, pos);
                 tokens.emplace_back(temp);
-                str = str.substr(pos + step, str.length());
-                pos = str.find(splitter);
+                _str = _str.substr(pos + step, _str.length());
+                pos = _str.find(_splitter);
             
             }
             return tokens;

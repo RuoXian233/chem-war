@@ -4,7 +4,7 @@
 #include <map>
 #include "object.h"
 #include "ecs.h"
-
+#include "log.h"
 
 namespace engine {
 
@@ -62,6 +62,8 @@ namespace engine {
         static void Finalize();
         static void Update(float dt);
         static void Render();
+
+        static void PrintSceneHeirarchy();
 
     private:
         static inline std::string currentScene = "none";

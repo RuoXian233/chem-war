@@ -3,6 +3,7 @@
 
 using namespace engine;
 std::map<std::string, Scene*> SceneManager::scenes;
+static engine::Logger logger("SceneManager");
 
 Scene::Scene(ecs::World &world, const std::string &prev, const std::string &next) : world(world), prevScene(prev), nextScene(next) {}
 Scene::Scene(ecs::World &world) : prevScene("none"), nextScene("none"), world(world) {}
@@ -55,10 +56,15 @@ void Scene::AddBorrowedObject(GameObject *go) {
 }
 
 
-void SceneManager::Initialize() {}
+void SceneManager::Initialize() {
+    INFO("Initialized");
+    logger.SetDisplayLevel(Logger::Level::Debug);
+}
 void SceneManager::Finalize() {
+    INFO("Finalizing ...");
     std::vector<std::string> sceneNames;
     for (auto &[sceneName, s] : scenes) {
+        DEBUG_F("Scene to release: `{}`", sceneName);
         sceneNames.push_back(sceneName);
     }
 
@@ -74,6 +80,7 @@ void SceneManager::AddScene(const std::string &name, Scene *scene) {
     if (scenes.find(name) == scenes.end()) {
         scenes[name] = scene;
         scene->OnAdd();
+        DEBUG_F("Added scene `{}`", name);
     } else {
         assert(false && "Scene already exists");   
     }
@@ -105,12 +112,14 @@ void SceneManager::SwitchScene(const std::string &name) {
         currentScene = name;
         s = GetCurrentScene();
         s->Enter();
+        DEBUG_F("Switched to scene `{}`", name);
     } else {
         assert(false && "Scene does not exist");
     }
 }
 
 void SceneManager::Proceed() {
+    INFO("Proceeding to next scene");
     auto s = GetCurrentScene();
     if (s->nextScene != "none" && scenes.find(s->nextScene) != scenes.end()) {
         SwitchScene(s->nextScene);
@@ -119,6 +128,7 @@ void SceneManager::Proceed() {
 
 void SceneManager::Back() {
     auto s = GetCurrentScene();
+    INFO("Try to roll back to previous scene");
     if (s->prevScene != "none" && scenes.find(s->prevScene) != scenes.end()) {
         SwitchScene(s->prevScene);
     }
@@ -129,6 +139,7 @@ void SceneManager::RemoveScene(const std::string &name) {
         auto s = scenes[name];
         s->OnRemove();
         scenes.erase(name);
+        DEBUG_F("Removed scene `{}`", name);
     } else {
         assert(false && "Scene does not exist");
     }
@@ -157,4 +168,33 @@ void SceneManager::Render() {
     if (s) {
         s->Render();
     }
+}
+
+
+void SceneManager::PrintSceneHeirarchy() {
+    logger.StartParagraph(Logger::Level::Debug);
+    if (!SceneManager::GetCurrentScene()) {
+        DEBUG("Scene is empty");
+        logger.EndParagraph();
+        return;
+    }
+    auto scene = SceneManager::GetCurrentScene();
+    DEBUG_F("[Target scene: {}]", SceneManager::GetCurrentSceneName());
+    
+    std::function<void(int, GameObject*)> PrintGameObject = [&](int depth, GameObject *go) {
+        std::cout << std::string(depth * 2, ' ') << "|-" << go->GetId();
+        auto childrens = go->GetChildrens();
+        if (!childrens.empty()) {
+            for (auto child : childrens) {
+                PrintGameObject(depth + 1, child);
+            }
+        } else {
+            std::cout << std::endl;
+        }
+    };
+    
+    for (auto &go : scene->objects) {
+        PrintGameObject(2, go.second);
+    }
+    logger.EndParagraph();
 }

@@ -2,6 +2,7 @@
 #include <SDL2/SDL_image.h>
 #include "resource.h"
 #include "consts.h"
+#include "log.h"
 
 using namespace engine;
 
@@ -11,11 +12,20 @@ Uint64 Renderer::ticks;
 float Renderer::prevFrameDeltatime;
 TTF_Font *Renderer::font;
 
+static Logger logger("Renderer");
+
 
 void Renderer::Initialize() {
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
+    logger.SetDisplayLevel(Logger::Level::Debug);
+
+    SDL_version *ver;
+    INFO("Render subsystem initialized");
+    DEBUG_F("SDL version: {}.{}.{}", SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL);
+    DEBUG_F("SDL_image version: {}.{}.{}", SDL_IMAGE_MAJOR_VERSION, SDL_IMAGE_MINOR_VERSION, SDL_IMAGE_PATCHLEVEL);
+    DEBUG_F("SDL_TTF version: {}.{}.{}", TTF_MAJOR_VERSION, TTF_MINOR_VERSION, TTF_PATCHLEVEL);
     Renderer::ticks = 0;
 }
 
@@ -34,8 +44,20 @@ void Renderer::CreateWindow(int w, int h, const char *title, Uint32 flags) {
         w, h,
         flags
     );
+    INFO("Window created");
+    logger.StartParagraph(Logger::Level::Debug);
+    DEBUG_F("Window size: {}x{}", w, h);
+    DEBUG_F("Window flags: {}", flags);
+    DEBUG_F("Window handle: {}", (void *) Renderer::window);
+    DEBUG_F("Window title: '{}'", title);
+    logger.EndParagraph();
 
     Renderer::renderer = SDL_CreateRenderer(Renderer::window, -1, 0);
+    INFO("Renderer created");
+    logger.StartParagraph(Logger::Level::Debug);
+    DEBUG_F("Renderer handle: {}", (void *) Renderer::renderer);
+    DEBUG_F("Standard framerate: {}", MAX_FRAMERATE);
+    logger.EndParagraph();
 }
 
 
@@ -54,12 +76,15 @@ void Renderer::Update() {
 }
 
 void Renderer::Finalize() {
+    INFO("Render subsystem finalizing ...");
     if (Renderer::HasFont()) {
+        DEBUG_F("Closing font: {}", (void *) Renderer::font);
         TTF_CloseFont(Renderer::font);
     }
 
     SDL_DestroyRenderer(Renderer::renderer);
     SDL_DestroyWindow(Renderer::window);
+    INFO("Render subsystem finalized");
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -97,10 +122,12 @@ void Renderer::Draw(const std::string &drawCall) {
 }
 
 void Renderer::EnableAlphaBlend() {
+    DEBUG("Enabling alpha blending");
     SDL_SetRenderDrawBlendMode(Renderer::renderer, SDL_BLENDMODE_BLEND);
 }
 
 void Renderer::DisableAlphaBlend() {
+    DEBUG("Disabling alpha blending");
     SDL_SetRenderDrawBlendMode(Renderer::renderer, SDL_BLENDMODE_NONE);
 }
 
@@ -145,11 +172,15 @@ bool Renderer::HasFont() {
 
 void Renderer::LoadFont(const std::string &font, int ptSize) {
     assert(!HasFont() && "Font resource already exists");
+    INFO_F("Loading global font", font);
+    DEBUG_F("Font size: {}", ptSize);
+
     auto f = TTF_OpenFont(font.c_str(), ptSize);
     if (!f) {
         Fatal("Font load failed");
     }
     Renderer::font = f;
+    DEBUG_F("Font handle: {}", (void *) Renderer::font);
 }
 
 TTF_Font *Renderer::GetFont() {
@@ -159,6 +190,7 @@ TTF_Font *Renderer::GetFont() {
 void Renderer::ChangeFontSize(int ptSize) {
     assert(HasFont() && "No font to be changed");
     TTF_SetFontSize(Renderer::font, ptSize);
+    DEBUG_F("Font size changed to: {}", ptSize);
 }
 
 void Renderer::ReloadFont(const std::string &font, int ptSize) {

@@ -61,15 +61,16 @@ void GameScene::OnFirstEnter() {
     this->AddObject(bar);
 
     EffectSystem::SetTargetScene(this);
-
+    SceneManager::PrintSceneHeirarchy();
 }
 
 void DeadScene::OnFirstEnter() {
     Scene::OnFirstEnter();
     auto gameScene = SceneManager::GetScene("game");
     auto dbgPanel = gameScene->GetObject<ui::DebugPanel>("ui.debug.panel");
-    dbgPanel->Hide(!dbgPanel->IsHide());
+    dbgPanel->Hide(false);
     this->AddBorrowedObject(dbgPanel);
+    Renderer::ChangeFontSize(32);
 }
 
 void GameScene::Update(float dt) {
@@ -112,9 +113,7 @@ void GameScene::Render() {
 void DeadScene::Render() {
     Scene::Render();
     Renderer::SetDrawColor(255, 100, 100, 255);
-    Renderer::ChangeFontSize(32);
     Renderer::RenderTexture(Renderer::Text(std::format("You Died! Total Score: {}", Game::score)), Vec2(500, 300));
-    Renderer::ChangeFontSize(16);
     Renderer::ClearDrawColor();
 }
 
@@ -127,7 +126,7 @@ void Game::Prepare(int argc, char **argv) {
     ResourceManager::Initialize(argc, argv);
     ResourcePack pack;
     Renderer::LoadFont("/usr/share/fonts/wenquanyi/wqy-microhei/wqy-microhei.ttc", 16);
-    // AudioManager::Initialize();
+    AudioManager::Initialize();
     for (int i = 1; i <= CHARACTER_FIGURES_COUNT; i++) {
         auto resourceURI = std::format("{}.{}", CHARACTER_FIGURE_URI, i);
         pack.emplace_back(ResourceManager::Load(
@@ -137,7 +136,8 @@ void Game::Prepare(int argc, char **argv) {
     }
     Character::Instance(Game::world, pack)->Prepare();
 
-    // ResourceManager::Load("bgm", ResourceType::Music, std::format("{}/{}.flac", BGM_PATH, "bgm"));
+    ResourceManager::Load("bgm", ResourceType::Music, std::format("{}/{}.flac", BGM_PATH, "bgm"));
+    AudioManager::SetBGM(ResourceManager::Get("bgm")->GetAs<Mix_Music>());
     auto gameScene = new GameScene(Game::world);
     auto deadScene = new DeadScene(Game::world);
     SceneManager::Initialize();
@@ -160,7 +160,7 @@ void Game::Prepare(int argc, char **argv) {
 }
 
 void Game::Run() {
-    // AudioManager::PlayBGM();
+    AudioManager::PlayBGM();
     Game::bgmPlaying = false;
     Game::state = Game::State::Run;
     SceneManager::SwitchScene("game");
@@ -197,8 +197,8 @@ void Game::Quit() {
     SceneManager::Finalize();
     ParticleManager::Finalize();
     Game::world.Shutdown();
-    // AudioManager::StopBGM();
-    // AudioManager::Finalize();
+    AudioManager::StopBGM();
+    AudioManager::Finalize();
     Character::Instance()->Destroy();
     InputManager::Finalize();
     ResourceManager::Finalize();
@@ -225,21 +225,21 @@ void GameScene::OnKeyDown(void *gameScene, const SDL_Event &e) {
         c->StartAttack();
     }
     if (InputManager::KeyDown(e, SDLK_m)) {
-        // Game::bgmPlaying = !Game::bgmPlaying;
-        // if (Game::bgmPlaying)
-        // {
-        //     if (!AudioManager::HasBGM())
-        //     {
-        //         auto bgm = ResourceManager::Get("bgm");
-        //         AudioManager::SetBGM(bgm->GetAs<Mix_Music>());
-        //         AudioManager::PlayBGM();
-        //     }
-        //     AudioManager::ResumeBGM();
-        // }
-        // else
-        // {
-        //     AudioManager::PauseBGM();
-        // }
+        Game::bgmPlaying = !Game::bgmPlaying;
+        if (Game::bgmPlaying)
+        {
+            if (!AudioManager::HasBGM())
+            {
+                auto bgm = ResourceManager::Get("bgm");
+                AudioManager::SetBGM(bgm->GetAs<Mix_Music>());
+                AudioManager::PlayBGM();
+            }
+            AudioManager::ResumeBGM();
+        }
+        else
+        {
+            AudioManager::PauseBGM();
+        }
     }
     if (InputManager::KeyDown(e, SDLK_F3)) {
         auto o = scene->GetObject<ui::DebugPanel>("ui.debug.panel");

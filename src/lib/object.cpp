@@ -18,6 +18,10 @@ void engine::GameObject::RemoveChildrens() {
     this->childrens.clear();
 }
 
+std::vector<engine::GameObject *> engine::GameObject::GetChildrens() {
+    return this->childrens;
+}
+
 void engine::GameObject::Update(float dt) {
     for (auto &&children : this->childrens) {
         children->Update(dt);

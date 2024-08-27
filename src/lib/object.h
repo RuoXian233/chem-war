@@ -33,6 +33,7 @@ namespace engine {
         
         virtual void Update(float dt);
         virtual void Render();
+        std::vector<GameObject *> GetChildrens();
 
         virtual ~GameObject();
     

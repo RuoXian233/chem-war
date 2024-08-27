@@ -1,4 +1,5 @@
 #include "resource.h"
+#include "log.h"
 
 using namespace engine;
 std::map<std::string, Resource *> ResourceManager::resourceDatabase;
@@ -6,10 +7,14 @@ int ResourceManager::argc;
 char **ResourceManager::argv;
 bool ResourceManager::releasing;
 
+static Logger logger("ResourceManager");
 
 void ResourceManager::Initialize(int argc, char **argv) {
     ResourceManager::argc = argc;
     ResourceManager::argv = argv;
+    logger.SetDisplayLevel(Logger::Level::Debug);
+    INFO("Resource manager initialized");
+    DEBUG_F("argc: {}, argv: {}", argc, (void *) argv);
     ResourceManager::resourceDatabase = decltype(ResourceManager::resourceDatabase)();
     ResourceManager::releasing = false;
 }
@@ -19,6 +24,9 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
         assert(false && "Resource already exists");
     }
     auto resource = new Resource;
+    INFO_F("Try to load resource: {}", id);
+    logger.StartParagraph(Logger::Level::Debug);
+    DEBUG_F("id: {}, type: {}, path: {}", id, (int) type, path);
 
     switch (type) {
     case ResourceType::Texture: {
@@ -30,6 +38,7 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
         resource->type = type;
         resource->data = reinterpret_cast<void *>(surf);
         resource->state = ResourceState::Good;
+        DEBUG_F("Texture loaded: {}", (void *) resource->data);
         break;
     }
     case ResourceType::Music: {
@@ -41,6 +50,7 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
         resource->type = type;
         resource->data = reinterpret_cast<void *>(music);
         resource->state = ResourceState::Good;
+        DEBUG_F("Music loaded: {}", (void *) resource->data);
         break;
     }
     case ResourceType::Sound: {
@@ -52,6 +62,7 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
         resource->type = type;
         resource->data = reinterpret_cast<void *>(sound);
         resource->state = ResourceState::Good;
+        DEBUG_F("Sound loaded: {}", (void *) resource->data);
         break;
     }
     default:
@@ -59,6 +70,8 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
     }
     
     ResourceManager::resourceDatabase.insert(std::make_pair(id, resource));
+    logger.EndParagraph();
+    DEBUG_F("Current resources count: {}", ResourceManager::Size());
     return resource;
 }
 
@@ -78,6 +91,7 @@ void ResourceManager::Unload(const std::string &id) {
     if (!utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
         assert(false && "Cannot find requested resource");
     }
+    // INFO_F("Try to unload resource: {}", id);
 
     auto res = ResourceManager::Get(id);
     switch (res->type) {
@@ -88,9 +102,11 @@ void ResourceManager::Unload(const std::string &id) {
         SDL_DestroyTexture(reinterpret_cast<SDL_Texture *>(res->data));
         break;
     case ResourceType::Music:
+        DEBUG_F("Regular resource found: {}", (void *) res->data);
         Mix_FreeMusic(reinterpret_cast<Mix_Music *>(res->data));
         break;
     case ResourceType::Sound:
+        DEBUG_F("Regular resource found: {}", (void *) res->data);
         Mix_FreeChunk(reinterpret_cast<Mix_Chunk *>(res->data));
         break;
     default:
@@ -114,6 +130,8 @@ void ResourceManager::Remove(const std::string &id) {
 
 
 void ResourceManager::Finalize() {
+    INFO("Resource manager finalizing");
+    INFO("Clearing resource ...");
     for (auto &&[id, res] : ResourceManager::resourceDatabase) {
         if (res->state == ResourceState::Good) {
             ResourceManager::Unload(id);
@@ -132,6 +150,8 @@ void ResourceManager::Check() {
     } 
 
     if (releasing) {
+        logger.StartParagraph(Logger::Level::Debug);
+        DEBUG("Clearing texture cache ... [Prepared]");
         int index = 1;
         // for (auto [resId, res] : ResourceManager::resourceDatabase) {
         for (auto it = ResourceManager::resourceDatabase.begin(); it != ResourceManager::resourceDatabase.end(); it++) {
@@ -140,7 +160,8 @@ void ResourceManager::Check() {
                     ResourceManager::Unload(it->first);
                 }
             }
-        }  
+        }
+        DEBUG("Clearing texture cache ... [Finished]");
     }
     
     std::vector<std::string> toRemove;
@@ -154,7 +175,12 @@ void ResourceManager::Check() {
         ResourceManager::Remove(id);
     }
 
-    if (ResourceManager::Size() <= RESOURCE_ACCUMULATING_MINIMUM + 1) {
+    if (!toRemove.empty()) {
+        DEBUG_F("Successfully removed {} resources", toRemove.size());
+    }
+
+    if (ResourceManager::Size() <= RESOURCE_ACCUMULATING_MINIMUM / 2) {
+        logger.EndParagraph();
         ResourceManager::releasing = false;
     }
 }

@@ -3,6 +3,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <cassert>
 #include "consts.h"
+#include "log.h"
 
 
 namespace engine {

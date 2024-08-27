@@ -5,6 +5,7 @@
 #include "lib/audio.h"
 #include "lib/ecs.h"
 #include "lib/scene.h"
+#include "lib/log.h"
 #include "enemy.h"
 
 #include "character.h"
@@ -54,9 +55,9 @@ namespace chem_war {
         static const int maxEnemies = 32;
         static inline int score = 0;
 
+        static bool bgmPlaying;
     private:
         static State state;
-        static bool bgmPlaying;
         static ecs::World world;
         std::vector<std::string> scenes;
     };
