@@ -1,5 +1,4 @@
 #include "resource.h"
-#include "log.h"
 
 using namespace engine;
 std::map<std::string, Resource *> ResourceManager::resourceDatabase;
@@ -21,6 +20,7 @@ void ResourceManager::Initialize(int argc, char **argv) {
 
 Resource *ResourceManager::Load(const std::string &id, ResourceType type, const std::string &path) {
     if (utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
+        FATAL_F("ResourceExistException: id={}->{} Resource already exists", id, path);
         assert(false && "Resource already exists");
     }
     auto resource = new Resource;

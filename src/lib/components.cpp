@@ -169,14 +169,20 @@ void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Q
     // }
 
     // Check for collisions
+    #ifdef __linux__
+        using NType = long;
+    #else
+        using NType = long long;
+    #endif
+
     for (auto entity : collidingEntities) {
         auto r1 = Vec2::CreateFRect(entity.pos, entity.size);
         for (auto item : collidingEntities) {
             if (item.object == entity.object) {
                 continue;
             }
-            auto id = (ecs::Entity) ((long) entity.object);
-            auto collideId = (ecs::Entity) ((long) item.object);
+            auto id = (ecs::Entity) ((NType) entity.object);
+            auto collideId = (ecs::Entity) ((NType) item.object);
 
             auto CollisionHandler = q.Get<SimpleCollider2D>(id).onCollide;
             

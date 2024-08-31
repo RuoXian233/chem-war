@@ -1,4 +1,5 @@
 #include "input.h"
+#include "log.h"
 
 using namespace engine;
 
@@ -6,12 +7,16 @@ bool InputManager::shouldQuit;
 SDL_Event InputManager::currentEvent;
 std::map<Uint32, std::pair<void *, InputManager::EventHandler>> InputManager::handlers;
 
+static Logger logger("InputManager");
+
 
 void InputManager::Initialize() {
     InputManager::shouldQuit = false;
     InputManager::handlers = decltype(InputManager::handlers)();
 
     srand((unsigned) time(nullptr));
+    logger.SetDisplayLevel(Logger::Level::Debug);
+    INFO("InputManager ready");
 }
 
 void InputManager::Update() {
@@ -22,6 +27,7 @@ void InputManager::Update() {
 
         if (utils_MapHasKey(InputManager::handlers, InputManager::currentEvent.type)) {
             auto [listener, handler] = InputManager::handlers.at(InputManager::currentEvent.type);
+            DEBUG_F("Triggering handler: {}->{} (listener={})", (int) InputManager::currentEvent.type, (void *) listener, (void *) &handler);
             handler(listener, InputManager::currentEvent);
         }
     }

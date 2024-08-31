@@ -1,9 +1,9 @@
 #include "game.h"
-#include "lib/object.h"
 #include "lib/components.h"
 #include "ui/debug_panel.h"
 #include "lib/particle.h"
 #include "lib/camera.h"
+#include "lib/animation.h"
 
 #include "lib/effects.h"
 
@@ -13,6 +13,8 @@ bool Game::bgmPlaying;
 ecs::World Game::world;
 Game::State Game::state;
 
+
+static Logger logger("Game");
 
 void GameScene::OnFirstEnter() {
     auto c = Character::Instance();
@@ -59,6 +61,8 @@ void GameScene::OnFirstEnter() {
    
     this->AddObject(dbgPanel);
     this->AddObject(bar);
+
+    Animation a({ "0", "1", "2" }, 32);
 
     EffectSystem::SetTargetScene(this);
     SceneManager::PrintSceneHeirarchy();
@@ -124,8 +128,9 @@ void Game::Prepare(int argc, char **argv) {
     Camera::Initalize();
     Camera::Enabled(true);
     ResourceManager::Initialize(argc, argv);
+    AnimationManager::Initialize();
     ResourcePack pack;
-    Renderer::LoadFont("/usr/share/fonts/wenquanyi/wqy-microhei/wqy-microhei.ttc", 16);
+    Renderer::LoadFont("assets/wqy-microhei.ttc", 16);
     AudioManager::Initialize();
     for (int i = 1; i <= CHARACTER_FIGURES_COUNT; i++) {
         auto resourceURI = std::format("{}.{}", CHARACTER_FIGURE_URI, i);
@@ -165,6 +170,8 @@ void Game::Run() {
     Game::state = Game::State::Run;
     SceneManager::SwitchScene("game");
 
+    WARNING("Current in alpha version, debug mode is default to `on`");
+
     while (!InputManager::ShouldQuit()) {
         Renderer::Clear();
         InputManager::Update();
@@ -201,6 +208,7 @@ void Game::Quit() {
     AudioManager::Finalize();
     Character::Instance()->Destroy();
     InputManager::Finalize();
+    AnimationManager::Finalize();
     ResourceManager::Finalize();
     Renderer::Finalize();
 }

@@ -210,8 +210,12 @@ Renderer::Texture Renderer::Text(const std::string &text, const SDL_Color &color
     assert(HasFont() && "No font resource");
     SDL_Surface *surf = TTF_RenderUTF8_Blended(Renderer::font, text.c_str(), color);
     auto texture = SDL_CreateTextureFromSurface(Renderer::renderer, surf);
+#ifndef __linux__
+    ResourceManager::RegisterResource(std::format("text.Texture {}{}{}", ResourceManager::Size(), (void *) texture, (long long) rand() + (long long) rand()), ResourceType::Texture, surf);
+#else
     ResourceManager::RegisterResource(std::format("text.Texture {}{}", (void *) texture, rand()), ResourceType::Texture, surf);
-    
+#endif
+
     Renderer::Texture t;
     t.size.x = surf->w;
     t.size.y = surf->h;

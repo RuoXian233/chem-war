@@ -8,9 +8,12 @@
 #include <algorithm>
 #include <unordered_map>
 #include <functional>
+#include <cstdint>
 
 #define assertm(cond, msgf) assert((cond) && msgf)
 
+#ifndef __linux__
+#endif
 
 namespace engine {
     namespace ecs {

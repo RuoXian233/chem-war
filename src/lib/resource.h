@@ -9,6 +9,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #include "utils.hpp"
+#include "log.h"
 
 namespace engine {
     enum class ResourceType {
