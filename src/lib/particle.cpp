@@ -11,7 +11,7 @@ static engine::Logger logger("ParticleManager");
 void ParticleManager::Initialize() {
     ParticleManager::world = nullptr;
     INFO("Particle system initialized");
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
 }
 
 ParticleSystem *ParticleManager::GetParticleSystem() {

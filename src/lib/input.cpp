@@ -15,7 +15,7 @@ void InputManager::Initialize() {
     InputManager::handlers = decltype(InputManager::handlers)();
 
     srand((unsigned) time(nullptr));
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
     INFO("InputManager ready");
 }
 

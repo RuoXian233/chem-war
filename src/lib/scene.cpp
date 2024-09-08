@@ -58,7 +58,7 @@ void Scene::AddBorrowedObject(GameObject *go) {
 
 void SceneManager::Initialize() {
     INFO("Initialized");
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
 }
 void SceneManager::Finalize() {
     INFO("Finalizing ...");
@@ -185,6 +185,7 @@ void SceneManager::PrintSceneHeirarchy() {
         std::cout << std::string(depth * 2, ' ') << "|-" << go->GetId();
         auto childrens = go->GetChildrens();
         if (!childrens.empty()) {
+            std::cout << std::endl;
             for (auto child : childrens) {
                 PrintGameObject(depth + 1, child);
             }

@@ -19,7 +19,7 @@ void Renderer::Initialize() {
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
 
     SDL_version *ver;
     INFO("Render subsystem initialized");
@@ -213,7 +213,7 @@ Renderer::Texture Renderer::Text(const std::string &text, const SDL_Color &color
 #ifndef __linux__
     ResourceManager::RegisterResource(std::format("text.Texture {}{}{}", ResourceManager::Size(), (void *) texture, (long long) rand() + (long long) rand()), ResourceType::Texture, surf);
 #else
-    ResourceManager::RegisterResource(std::format("text.Texture {}{}", (void *) texture, rand()), ResourceType::Texture, surf);
+    ResourceManager::RegisterResource(std::format("text.Texture {}{}", (void *) texture, rand()), ResourceType::Texture, surf, LifeCycleSpec::Temporary);
 #endif
 
     Renderer::Texture t;

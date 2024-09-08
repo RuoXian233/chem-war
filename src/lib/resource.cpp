@@ -11,14 +11,14 @@ static Logger logger("ResourceManager");
 void ResourceManager::Initialize(int argc, char **argv) {
     ResourceManager::argc = argc;
     ResourceManager::argv = argv;
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
     INFO("Resource manager initialized");
     DEBUG_F("argc: {}, argv: {}", argc, (void *) argv);
     ResourceManager::resourceDatabase = decltype(ResourceManager::resourceDatabase)();
     ResourceManager::releasing = false;
 }
 
-Resource *ResourceManager::Load(const std::string &id, ResourceType type, const std::string &path) {
+Resource *ResourceManager::Load(const std::string &id, ResourceType type, const std::string &path, LifeCycleSpec spec) {
     if (utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
         FATAL_F("ResourceExistException: id={}->{} Resource already exists", id, path);
         assert(false && "Resource already exists");
@@ -38,6 +38,7 @@ Resource *ResourceManager::Load(const std::string &id, ResourceType type, const 
         resource->type = type;
         resource->data = reinterpret_cast<void *>(surf);
         resource->state = ResourceState::Good;
+        resource->spec = spec;
         DEBUG_F("Texture loaded: {}", (void *) resource->data);
         break;
     }
@@ -150,18 +151,32 @@ void ResourceManager::Check() {
     } 
 
     if (releasing) {
+        // logger.StartParagraph(Logger::Level::Debug);
+
+        // DEBUG("Begin querying ...");
+        // DEBUG_F("Queried for `character*`: {}", ToString(ResourceManager::QueryUnqualified("character")));
+
+        // logger.EndParagraph();
+
         logger.StartParagraph(Logger::Level::Debug);
         DEBUG("Clearing texture cache ... [Prepared]");
         int index = 1;
         // for (auto [resId, res] : ResourceManager::resourceDatabase) {
         for (auto it = ResourceManager::resourceDatabase.begin(); it != ResourceManager::resourceDatabase.end(); it++) {
-            if (it->second->type == ResourceType::Texture) {
+            if (it->second->type == ResourceType::Texture && it->second->spec == LifeCycleSpec::Temporary) {
                 if (it->second->state == ResourceState::Good) {
                     ResourceManager::Unload(it->first);
                 }
             }
         }
         DEBUG("Clearing texture cache ... [Finished]");
+
+        // logger.StartParagraph(Logger::Level::Debug);
+
+        //DEBUG("Begin querying ...");
+        //DEBUG_F("Queried for `character*`: {}", ToString(ResourceManager::QueryUnqualified("character")));
+
+        logger.EndParagraph();
     }
     
     std::vector<std::string> toRemove;
@@ -184,3 +199,15 @@ void ResourceManager::Check() {
         ResourceManager::releasing = false;
     }
 }
+
+
+std::vector<std::string> ResourceManager::QueryUnqualified(const std::string &s) {
+    std::vector<std::string> candidate;
+    for (const auto &[resId, _] : ResourceManager::resourceDatabase) {
+        if (resId.starts_with(s)) {
+            candidate.emplace_back(resId); 
+        }
+    }
+    return candidate;
+}
+

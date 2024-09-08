@@ -14,6 +14,7 @@ Bar::Bar(const std::string &name, engine::ecs::World &world, const Vec2 &pos) : 
         },
         components::SceneAssosication { "game" }
     );
+
     cmd.Execute();
 }
 

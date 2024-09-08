@@ -34,8 +34,9 @@ void engine::GameObject::Render() {
     }
 }
 
-void engine::GameObject::SetParent(GameObject *go) {
+[[deprecated]] void engine::GameObject::SetParent(GameObject *go) {
     this->parent = go;
+    // go->AddChildren(this);
 }
 
 engine::GameObject::~GameObject() {

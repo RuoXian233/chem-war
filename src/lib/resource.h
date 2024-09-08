@@ -26,11 +26,17 @@ namespace engine {
         Released
     };
 
+    enum class LifeCycleSpec {
+        Constant,
+        Temporary
+    };
+
     struct Resource final {
         std::string id;
         ResourceType type;
         ResourceState state;
         void *data;
+        LifeCycleSpec spec = LifeCycleSpec::Constant;
 
         template<typename T>
         T *GetAs() {
@@ -38,15 +44,15 @@ namespace engine {
         }
     };
 
-    using ResourcePack = std::vector<std::shared_ptr<Resource>>;
+    using ResourcePack = std::vector<Resource *>;
 
     class ResourceManager final {
     public:
         static void Initialize(int argc, char **argv);
-        static Resource *Load(const std::string &id, ResourceType type, const std::string &path);
+        static Resource *Load(const std::string &id, ResourceType type, const std::string &path, LifeCycleSpec spec = LifeCycleSpec::Constant);
         
         template<typename T>
-        static void RegisterResource(const std::string &id, ResourceType type, T *data)  {
+        static void RegisterResource(const std::string &id, ResourceType type, T *data, LifeCycleSpec spec = LifeCycleSpec::Constant)  {
             if (utils_MapHasKey(ResourceManager::resourceDatabase, id)) {
                 assert(false && "Resource already exists");
             }
@@ -55,6 +61,7 @@ namespace engine {
             resource->id = id;
             resource->state = ResourceState::Good;
             resource->data = reinterpret_cast<void *>(data);
+            resource->spec = spec;
             
             ResourceManager::resourceDatabase.insert(std::make_pair(id, resource));
         }
@@ -65,6 +72,9 @@ namespace engine {
         static void Unload(const std::string &id);
         static void Finalize();
         static void Remove(const std::string &id);
+        static bool Has(const std::string &id);
+
+        static std::vector<std::string> QueryUnqualified(const std::string &pref);
 
         static size_t Size();
 

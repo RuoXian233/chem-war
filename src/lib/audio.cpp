@@ -7,7 +7,7 @@ static engine::Logger logger("AudioManager");
 
 void AudioManager::Initialize() {
     Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_FLAC);
-    logger.SetDisplayLevel(Logger::Level::Debug);
+    logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
     DEBUG("SDL_mixer initialized");
     int result = Mix_OpenAudio(
         MIX_DEFAULT_FREQUENCY, 

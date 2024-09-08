@@ -15,4 +15,5 @@ find_package(SDL2_ttf REQUIRED)
 file(GLOB_RECURSE source src/*.cpp)
 
 link_libraries(SDL2 SDL2_image SDL2_mixer SDL2_ttf)
-add_executable(chemwar ${source})
+add_executable(chemwar ${source}
+        src/lib/drefl.h)

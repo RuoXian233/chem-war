@@ -6,11 +6,14 @@ EffectState *EffectSystem::currentEffectState;
 Scene *EffectSystem::targetScene;
 std::vector<EffectState*> EffectSystem::effectQueue;
 
+static Logger logger("EffectSystem");
+
 
 void EffectSystem::Initalize() {
     EffectSystem::targetScene = nullptr;
     EffectSystem::currentEffectState = nullptr;
     Renderer::EnableAlphaBlend();
+    INFO("EffectSystem initialized");
 }
 
 void EffectSystem::Finalize() {

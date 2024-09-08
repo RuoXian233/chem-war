@@ -1,3 +1,6 @@
 build/*
 .cache/*
 .vscode/*
+.idea/*
+assets/*
+cmake-build-debug/*

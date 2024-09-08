@@ -7,6 +7,8 @@
 #include <cmath>
 #include <SDL2/SDL.h>
 #include <vector>
+#include <map>
+#include <sstream>
 
 #define SRAND() srand((unsigned) (nullptr))
 
@@ -90,4 +92,28 @@ namespace engine {
     int RandInt(int maximum);
     int RandInt(int minimum, int maximum);
     float Random();
+
+
+    template<typename T>
+    std::string ToString(const std::vector<T> &v) {
+        std::stringstream ss;
+        ss << "[";
+        int index = 0;
+        for (const auto &i : v) {
+            ss << i;
+            index++;
+            if (index != v.size()) {
+                ss << ", ";
+            } else {
+                ss << "]";
+            }
+        }
+        return ss.str();
+    }
+
+
+    template<typename T, typename U>
+    std::string ToString(const std::map<T, U> &m) {
+        return "[Not implemented]";
+    }
 }

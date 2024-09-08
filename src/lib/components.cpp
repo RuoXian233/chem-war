@@ -197,6 +197,11 @@ void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Q
 
 void engine::components::SimpleTimerSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     for (auto entity : q.Query<SimpleTimer>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            if (q.Get<SceneAssosication>(entity).sceneName != SceneManager::GetCurrentSceneName()) {
+                continue;
+            }
+        }
         auto dt = Renderer::GetDeltatime();
         auto &timer = q.Get<SimpleTimer>(entity);
         if (timer.isActivated && timer.shots < timer.maxShots) {

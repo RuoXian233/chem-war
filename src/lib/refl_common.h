@@ -69,6 +69,7 @@ namespace engine {
         struct function_traits<Ret(Class::*)(Args...)> 
             : details::basic_function_traits<Ret(Args...)> {
             using type = Ret (Class::*)(Args...);
+            using clazz = Class;
             // `this` argument
             using argsWithClass = std::tuple<Class *, Args...>;
             using pointer = Ret (Class::*)(Args...);

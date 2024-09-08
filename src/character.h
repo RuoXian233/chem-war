@@ -5,6 +5,7 @@
 #include "lib/object.h"
 #include "lib/particle.h"
 #include "ui/bar.h"
+#include "lib/animation.h"
 
 using namespace engine;
 
@@ -67,6 +68,8 @@ namespace chem_war {
         bool showBulletCollider = true;
         Bullet bullet;
         static constexpr auto idNULL = (ecs::Entity) ecs::SparseSet<ecs::Entity, 32>::null;
+
+        Animation *anim;
 
     private:
         ecs::World &world;

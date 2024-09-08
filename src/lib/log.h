@@ -55,6 +55,13 @@ static const char *LOG_LEVEL_STRING[] = {
 #define BOLD_PURPLE "\033[1;35m"
 #define BOLD_CYAN "\033[1;36m"
 
+#define USE_GLOBAL_LOG_LEVEL
+
+#ifdef USE_GLOBAL_LOG_LEVEL
+    #define GLOBAL_LOG_LEVEL Logger::Level::Debug
+#endif
+
+
 static const char *DEFAULT_MSG_COLOR[] = { CYAN, RESET, GREEN, RED, BOLD_RED };
 
 
@@ -103,6 +110,7 @@ namespace engine {
         void SetDisplayLevel(Level level);
         void StartParagraph(Level level);
         void EndParagraph();
+        void SetAutoFold(bool value = true, int note = 10);
         void Log(Level level, const std::string &message, const SourceInfo &sourceInfo);
         static std::string GetFormattedTimeStamp();
 
@@ -121,5 +129,13 @@ namespace engine {
         bool isInParagraph = false;
         std::string moduleName;
         Level displayLevel = Level::Info;
+    
+        std::string previousMessage;
+        bool autoFold = true;
+        int foldNote = 0;
+        int maxFoldBuf = 10;
+        int minFoldTolerance = 1;
+        bool folding = false;
+        float blockingTime = 0.5;
     };
 }

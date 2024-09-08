@@ -58,11 +58,18 @@ void GameScene::OnFirstEnter() {
     auto bar = new ui::Bar("character.hp", this->world, Vec2(800, 320));
     bar->Config(2, { 255, 0, 0, 255 }, { 255, 255, 255, 255 }, Vec2(c->GetSize().x, 16));
     bar->AttachValue([=]() { return c->GetHp() / c->GetMaxHp(); });
-   
-    this->AddObject(dbgPanel);
-    this->AddObject(bar);
+    // bar->SetParent(dbgPanel);
+    dbgPanel->AddChildren(bar);
 
-    Animation a({ "0", "1", "2" }, 32);
+    this->AddObject(dbgPanel);
+
+    c->anim = new Animation({ 
+        "character.figure.1",
+        "character.figure.2",
+        "character.figure.3",
+        "character.figure.4",
+        "character.figure.5"
+    }, 32);
 
     EffectSystem::SetTargetScene(this);
     SceneManager::PrintSceneHeirarchy();
@@ -95,7 +102,9 @@ void GameScene::Update(float dt) {
             enemy = nullptr;
         }
     }
-    auto bar = this->GetObject<ui::Bar>("ui.bar.character.hp");
+
+    c->anim->Update(dt);
+    auto bar = this->GetObject<ui::DebugPanel>("ui.debug.panel")->GetChildrens()[0];
     bar->GetComponent<components::Movement>().pos = c->GetPos() + Vec2(0, -20);
     this->RespawnEnemies();
 }
@@ -112,6 +121,8 @@ void GameScene::Render() {
             enemy->Render();
         }
     }
+
+    c->anim->Next(Vec2(400, 600));
 }
 
 void DeadScene::Render() {

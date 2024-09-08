@@ -63,6 +63,30 @@ void Logger::EndParagraph() {
 }
 
 void Logger::Log(Level level, const std::string &message, const SourceInfo &sourceInfo) {
+    auto prev = this->previousMessage;
+
+    if (message == this->previousMessage && this->autoFold && !this->folding) {
+        this->foldNote++;
+    }
+    this->previousMessage = message;
+
+    if (this->foldNote == this->maxFoldBuf * 2) {
+        this->Write(Level::Fatal, std::format("{}{}[Previous message {}`{}`{} repeated for {} times, temprorarily blocked]{}", TAB, BOLD_BLUE, WHITE, this->previousMessage, BOLD_BLUE, this->foldNote, RESET));
+        folding = true;
+    }
+
+    if (message == prev && folding && this->foldNote > this->minFoldTolerance) {
+        auto ft = (float) this->foldNote;
+        ft -= this->blockingTime;
+
+        this->foldNote = (int) ft;
+        return;
+    }
+
+    if (this->foldNote <= this->minFoldTolerance) {
+        this->folding = false;
+    }
+
     auto fileInfo = std::format(
         "{}<{}:{}>{}",
         BOLD_WHITE, ParseFilename(sourceInfo.file), sourceInfo.line, RESET
