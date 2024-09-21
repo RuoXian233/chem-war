@@ -82,6 +82,14 @@ namespace engine {
 
         struct IndivisualTimer {};
 
+        struct LabelText {
+            std::string text;
+            int fontsize;
+            Color fg;
+            Color bg;
+            Vec2 dPos;
+        };
+
         void MovementSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void Texture2DRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void BasicGraphRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
@@ -90,5 +98,6 @@ namespace engine {
         void SimpleSwitchSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void SimpleCollider2DSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
         void SimpleTimerSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
+        void LabelTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);
     }
 }

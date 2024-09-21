@@ -214,3 +214,34 @@ void engine::components::SimpleTimerSystem(ecs::Commands &commander, ecs::Querie
         }
     }
 }
+
+void engine::components::LabelTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+    for (auto entity : q.Query<LabelText>()) {
+        if (q.Has<SceneAssosication>(entity)) {
+            if (q.Get<SceneAssosication>(entity).sceneName != SceneManager::GetCurrentSceneName()) {
+                continue;
+            }
+        }
+
+        Vec2 pos;
+        const auto &textComp = q.Get<LabelText>(entity);
+        if (q.Has<Movement>(entity)) {
+            pos = q.Get<Movement>(entity).pos;
+        } else {
+            pos = textComp.dPos;
+        }
+        int origFontSize = Renderer::GetCurrentFontsize();
+        Renderer::ChangeFontSize(textComp.fontsize);
+        SDL_Point p;
+        TTF_SizeUTF8(Renderer::GetFont(), textComp.text.c_str(), &p.x, &p.y);
+        Vec2 size(p.x, p.y);
+
+        Renderer::SetDrawColor(textComp.bg);
+        Renderer::FillRect(pos, size);
+        auto t = Renderer::Text(textComp.text, textComp.fg);
+        Renderer::RenderTexture(t, pos);
+        Renderer::DeleteRenderContext(t);
+        Renderer::ClearDrawColor();
+        Renderer::ChangeFontSize(origFontSize);
+    }
+}

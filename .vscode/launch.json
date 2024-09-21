@@ -10,7 +10,7 @@
             "name": "Debug",
             "program": "${workspaceFolder}/bin/chemwar",
             "args": [],
-            "cwd": "${workspaceFolder}/build"
+            "cwd": "${workspaceFolder}/bin"
         }
     ]
 }

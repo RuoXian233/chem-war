@@ -74,6 +74,8 @@ namespace engine {
         static void Remove(const std::string &id);
         static bool Has(const std::string &id);
 
+        static SDL_Surface *OpenRawImage(const std::string &img);
+
         static std::vector<std::string> QueryUnqualified(const std::string &pref);
 
         static size_t Size();

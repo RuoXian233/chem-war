@@ -4,6 +4,8 @@
 
 
 namespace engine {
+    using size_t = std::size_t;
+
     namespace refl_common {
         namespace details {
             // variable_traits

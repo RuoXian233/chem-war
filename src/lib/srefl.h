@@ -1,24 +1,25 @@
 #pragma once
 #include "refl_common.h"
+#include <string_view>
 
 
 #define SREFL_BEGIN_CLASS(X) \
-template<> struct chem_war::srefl::Reflected<X> { static constexpr auto className = #X;
+template<> struct engine::srefl::Reflected<X> { static constexpr auto className = #X;
 
 #define SREFL_FUNCTIONS(...) \
 static constexpr auto functions = std::make_tuple(__VA_ARGS__);
 
-#define SREFL_FUNC(f) chem_war::srefl::field_traits { f, #f }
+#define SREFL_FUNC(f) engine::srefl::field_traits { f, #f }
 
 #define SREFL_FIELDS(...) \
 static constexpr auto fields = std::make_tuple(__VA_ARGS__);
 
-#define SREFL_FIELD(field) chem_war::srefl::field_traits { field, #field }
+#define SREFL_FIELD(field) engine::srefl::field_traits { field, #field }
 
 #define SREFL_SUPER_CLASSES(...) \
 static constexpr auto superClasses = std::make_tuple(__VA_ARGS__);
 
-#define SREFL_SUPER_CLASS(c) chem_war::srefl::Reflected<c> {}
+#define SREFL_SUPER_CLASS(c) engine::srefl::Reflected<c> {}
 
 #define SREFL_END_CLASS() };
 

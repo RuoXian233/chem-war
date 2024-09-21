@@ -351,7 +351,7 @@ namespace engine::drefl {
             }
         };
 
-    template<typename T, bool IsConst>
+    template<typename T, bool IsConst = false>
     std::conditional_t<IsConst, const T &, T &> Unwrap(any &value) {
         assert(value.typeInfo == GetType<T>());
         if constexpr (IsConst) {
@@ -359,6 +359,7 @@ namespace engine::drefl {
                 assert(false && "Unsupported reference object");
             }
             return *(const T *) value.payload;
+
         } else {
             return *(T *) value.payload;
         }
@@ -366,8 +367,12 @@ namespace engine::drefl {
 
         template<typename Clazz, typename Tp, size_t ...Index, typename ...Args>
         any InnerCall(Tp (Clazz::* ptr)(Args...), const std::vector<any> &params, std::index_sequence<Index...>) {
-            auto ret = (((Clazz *) params[0].payload)->*ptr)(Unwrap<Args>(params[Index + 1])...);
-            return MakeCopy(ret);
+            if constexpr (std::is_same_v<Tp, void>) {
+                (((Clazz *) params[0].payload)->*ptr)(Unwrap<Args>(std::remove_const_t<any &>(params[Index + 1]))...);
+                return any();
+            } else {
+                return MakeCopy((((Clazz *) params[0].payload)->*ptr)(Unwrap<Args>(std::remove_const_t<any &>(params[Index + 1]))...));
+            }
         }
 
         template<typename Clazz, typename Tp, typename Args, typename Func>

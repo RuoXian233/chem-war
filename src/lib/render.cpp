@@ -11,6 +11,7 @@ SDL_Window *Renderer::window;
 Uint64 Renderer::ticks;
 float Renderer::prevFrameDeltatime;
 TTF_Font *Renderer::font;
+int Renderer::currentFontsize;
 
 static Logger logger("Renderer");
 
@@ -181,6 +182,7 @@ void Renderer::LoadFont(const std::string &font, int ptSize) {
     }
     Renderer::font = f;
     DEBUG_F("Font handle: {}", (void *) Renderer::font);
+    Renderer::currentFontsize = ptSize;
 }
 
 TTF_Font *Renderer::GetFont() {
@@ -190,7 +192,8 @@ TTF_Font *Renderer::GetFont() {
 void Renderer::ChangeFontSize(int ptSize) {
     assert(HasFont() && "No font to be changed");
     TTF_SetFontSize(Renderer::font, ptSize);
-    DEBUG_F("Font size changed to: {}", ptSize);
+    // DEBUG_F("Font size changed to: {}", ptSize);
+    Renderer::currentFontsize = ptSize;
 }
 
 void Renderer::ReloadFont(const std::string &font, int ptSize) {
@@ -266,4 +269,20 @@ void Renderer::DeleteRenderContext(Renderer::Texture &texture) {
     SDL_DestroyTexture(texture.textureData);
     texture.textureData = nullptr;
     texture.size = Vec2();
+}
+
+int Renderer::GetCurrentFontsize() {
+    return Renderer::currentFontsize;
+}
+
+Renderer::Texture Renderer::Clip(SDL_Surface *t, const Vec2 &pos, const Vec2 &size) {
+    auto texture = Renderer::CreateRenderContext(size);
+    auto textCache = SDL_CreateTextureFromSurface(renderer, t);
+    auto rect = Vec2::CreateRect(pos, size);
+
+    Renderer::SetRenderContext(texture);
+    SDL_RenderCopy(renderer, textCache, &rect, nullptr); 
+    Renderer::ClearRenderContext();
+    SDL_DestroyTexture(textCache);
+    return texture;
 }

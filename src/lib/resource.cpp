@@ -211,3 +211,13 @@ std::vector<std::string> ResourceManager::QueryUnqualified(const std::string &s)
     return candidate;
 }
 
+SDL_Surface *ResourceManager::OpenRawImage(const std::string &img) {
+    auto surf = IMG_Load(img.c_str());
+    if (surf) {
+        return surf;
+    } else {
+        ERROR_F("Raw image: '{}' load failed", img);
+        ERROR_F("Cause: {}", SDL_GetError());
+        return nullptr;
+    }
+}

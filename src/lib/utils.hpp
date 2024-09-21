@@ -116,4 +116,6 @@ namespace engine {
     std::string ToString(const std::map<T, U> &m) {
         return "[Not implemented]";
     }
+
+    using Color = SDL_Color;
 }
