@@ -46,3 +46,11 @@ engine::GameObject::~GameObject() {
     }
     cmd.Execute();
 }
+
+engine::ecs::Entity engine::GameObject::GetEntity() {
+    return this->entityId;
+}
+
+engine::ecs::World &engine::GameObject::GetWorld() {
+    return this->world;
+}

@@ -87,6 +87,8 @@ namespace engine {
             int fontsize;
             Color fg;
             Color bg;
+            bool useColorKey;
+            Color key;
             Vec2 dPos;
         };
 

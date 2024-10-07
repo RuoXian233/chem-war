@@ -72,6 +72,7 @@ namespace engine {
         const Color Khaki = { 240, 230, 140, 255 };
         const Color Lavender = { 230, 230, 250, 255 };
         const Color Lawngreen = { 124,252, 0, 255 };
+        const Color Red = { 255, 0, 0, 255 };
     }
 
     class Renderer final {
@@ -115,9 +116,11 @@ namespace engine {
         static void DrawRect(const Vec2 &pos, const Vec2 &size);
         static void FillRect(const Vec2 &pos, const Vec2 &size);
         static void DrawCircle(const Vec2 &pos, int radius, float delta = 5);
+        static void Line(const Vec2 &st, const Vec2 &et, const Color &color, int stroke = 3);
 
         static Texture Text(const std::string &text);
         static Texture Text(const std::string &text, const SDL_Color &color);
+        static Texture Text(const std::string &text, const SDL_Color &color, const SDL_Color &key);
         static Texture FastText(const std::string &text);
         static Texture FastText(const std::string &text, const SDL_Color &color);
 
@@ -125,6 +128,11 @@ namespace engine {
         static void SetRenderContext(const Texture &ctx);
         static void ClearRenderContext();
         static void DeleteRenderContext(Texture &ctx);
+
+        static void ApplyColorKey(SDL_Surface *s, Color c);
+
+        static void SetGlobalBackGround(const std::string &img);
+        static void ClearGlobalBackGround();
 
         static Texture Clip(SDL_Surface *t, const Vec2 &pos, const Vec2 &size);
 
@@ -136,6 +144,7 @@ namespace engine {
         static TTF_Font *font;
 
         static int currentFontsize;
+        static SDL_Texture *globalBackground;
 
         static ObjectPool<Texture> texturePool;
     };

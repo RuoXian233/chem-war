@@ -6,6 +6,7 @@ using namespace engine;
 bool InputManager::shouldQuit;
 SDL_Event InputManager::currentEvent;
 std::map<Uint32, std::pair<void *, InputManager::EventHandler>> InputManager::handlers;
+std::vector<SDL_Event> InputManager::eventLastFrame;
 
 static Logger logger("InputManager");
 
@@ -20,6 +21,7 @@ void InputManager::Initialize() {
 }
 
 void InputManager::Update() {
+    InputManager::eventLastFrame.clear();
     while (SDL_PollEvent(&InputManager::currentEvent)) {
         if (InputManager::currentEvent.type == SDL_QUIT) {
             InputManager::shouldQuit = true;
@@ -30,6 +32,8 @@ void InputManager::Update() {
             DEBUG_F("Triggering handler: {}->{} (listener={})", (int) InputManager::currentEvent.type, (void *) listener, (void *) &handler);
             handler(listener, InputManager::currentEvent);
         }
+
+        InputManager::eventLastFrame.push_back(currentEvent);
     }
 }
 
@@ -38,6 +42,10 @@ void InputManager::ClearHandlers() {
 }
 
 void InputManager::Finalize() {}
+
+std::vector<SDL_Event> InputManager::GetEventCache() {
+    return InputManager::eventLastFrame;
+}
 
 Vec2 InputManager::GetMousePos(const SDL_Event &e) { 
     return Vec2(e.motion.x, e.motion.y);

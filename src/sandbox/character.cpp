@@ -7,16 +7,11 @@ Character *Character::sCharacter;
 using namespace engine;
 
 
-Character *Character::Instance(const std::string &texture) {
+Character *Character::Instance() {
     if (!Character::sCharacter) {
         Character::sCharacter = new Character();
-        Character::sCharacter->texture = texture;
+        Character::sCharacter->texture = "character.figure";
     }
-    return Character::sCharacter;
-}
-
-Character *Character::Instance() {
-    assert(Character::sCharacter && "Character not initialized");
     return Character::sCharacter;
 }
 

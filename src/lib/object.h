@@ -34,6 +34,9 @@ namespace engine {
         virtual void Update(float dt);
         virtual void Render();
         std::vector<GameObject *> GetChildrens();
+        ecs::Entity GetEntity();
+
+        ecs::World &GetWorld();
 
         virtual ~GameObject();
     

@@ -21,6 +21,7 @@ namespace engine {
         static bool MouseDown(const SDL_Event &e, int button);
         static bool KeyUp(const SDL_Event &e, SDL_KeyCode key);
         static Vec2 GetMousePos(const SDL_Event &e);
+        static std::vector<SDL_Event> GetEventCache();
 
         static void ClearHandlers();
 
@@ -34,5 +35,6 @@ namespace engine {
         static bool shouldQuit;
         static SDL_Event currentEvent;
         static std::map<Uint32, std::pair<void *, EventHandler>> handlers;
+        static std::vector<SDL_Event> eventLastFrame;
     };
 }

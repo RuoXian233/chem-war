@@ -12,6 +12,7 @@ Uint64 Renderer::ticks;
 float Renderer::prevFrameDeltatime;
 TTF_Font *Renderer::font;
 int Renderer::currentFontsize;
+SDL_Texture *Renderer::globalBackground;
 
 static Logger logger("Renderer");
 
@@ -21,6 +22,7 @@ void Renderer::Initialize() {
     IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     TTF_Init();
     logger.SetDisplayLevel(GLOBAL_LOG_LEVEL);
+    globalBackground = nullptr;
 
     SDL_version *ver;
     INFO("Render subsystem initialized");
@@ -65,6 +67,10 @@ void Renderer::CreateWindow(int w, int h, const char *title, Uint32 flags) {
 void Renderer::Clear() {
     Renderer::ticks = SDL_GetPerformanceCounter();
     SDL_RenderClear(Renderer::renderer);
+
+    if (Renderer::globalBackground) {
+        SDL_RenderCopy(renderer, Renderer::globalBackground, nullptr, nullptr);
+    }
 }
 
 void Renderer::Update() {
@@ -78,6 +84,7 @@ void Renderer::Update() {
 
 void Renderer::Finalize() {
     INFO("Render subsystem finalizing ...");
+    Renderer::ClearGlobalBackGround();
     if (Renderer::HasFont()) {
         DEBUG_F("Closing font: {}", (void *) Renderer::font);
         TTF_CloseFont(Renderer::font);
@@ -226,6 +233,24 @@ Renderer::Texture Renderer::Text(const std::string &text, const SDL_Color &color
     return t;
 }
 
+Renderer::Texture Renderer::Text(const std::string &text, const SDL_Color &color, const SDL_Color &key) {
+    assert(HasFont() && "No font resource");
+    SDL_Surface *surf = TTF_RenderUTF8_Blended(Renderer::font, text.c_str(), color);
+    Renderer::ApplyColorKey(surf, key);
+    auto texture = SDL_CreateTextureFromSurface(Renderer::renderer, surf);
+#ifndef __linux__
+    ResourceManager::RegisterResource(std::format("text.Texture {}{}{}", ResourceManager::Size(), (void *) texture, (long long) rand() + (long long) rand()), ResourceType::Texture, surf);
+#else
+    ResourceManager::RegisterResource(std::format("text.Texture {}{}", (void *) texture, rand()), ResourceType::Texture, surf, LifeCycleSpec::Temporary);
+#endif
+
+    Renderer::Texture t;
+    t.size.x = surf->w;
+    t.size.y = surf->h;
+    t.textureData = texture;
+    return t;
+}
+
 Vec2 Renderer::GetRenderSize() {
     int w, h;
     SDL_GetWindowSize(Renderer::window, &w, &h);
@@ -285,4 +310,41 @@ Renderer::Texture Renderer::Clip(SDL_Surface *t, const Vec2 &pos, const Vec2 &si
     Renderer::ClearRenderContext();
     SDL_DestroyTexture(textCache);
     return texture;
+}
+
+void Renderer::SetGlobalBackGround(const std::string &img) {
+    INFO_F("Background changed to: {}", img);
+    if (!Renderer::globalBackground) {
+        auto bgSurf = IMG_Load(img.c_str());
+        if (!bgSurf) {
+            ERROR_F("Load background failed: {} (loading image)", img);
+            ERROR_F("Cause: {}", SDL_GetError());
+            return;
+        }
+        Renderer::globalBackground = SDL_CreateTextureFromSurface(renderer, bgSurf);
+        if (!Renderer::globalBackground) {
+            ERROR_F("Load background failed: {} (creating texture)", img);
+            ERROR_F("Cause: {}", SDL_GetError());
+        }
+        SDL_FreeSurface(bgSurf);
+    }
+}
+
+void Renderer::ClearGlobalBackGround() {
+    if (Renderer::globalBackground) {
+        SDL_DestroyTexture(Renderer::globalBackground);
+        Renderer::globalBackground = nullptr;
+    }
+}
+
+void Renderer::ApplyColorKey(SDL_Surface *s, Color c) {
+    SDL_SetColorKey(s, SDL_TRUE, SDL_MapRGB(s->format, c.r, c.g, c.b));
+}
+
+void Renderer::Line(const Vec2 &st, const Vec2 &et, const Color &color, int stroke) {
+    if (stroke < 1) {
+        SDL_RenderDrawLine(renderer, st.x, st.y, et.x, et.y);
+    } else {
+        
+    }
 }

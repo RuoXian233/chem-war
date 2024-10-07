@@ -248,8 +248,12 @@ namespace engine {
                 Destructor dfunc;
 
                 Pool(Constructor c, Destructor d) : cfunc(c), dfunc(d) {
-                    //assert(c && "Pool constructor should be not-null");
-                    //assert(d && "Pool destructor should be not-null");
+                    if (!c) {
+                        std::cerr << std::format("WARN: Pool constructor should be not-null (from pool {})", (void *) this) << std::endl;
+                    }
+                    if (!d) {
+                        std::cerr << std::format("WARN: Pool destructor should be not-null (from pool {})", (void *) this) << std::endl;
+                    }
                 }
                 
                 void *Create() {
@@ -524,7 +528,10 @@ namespace engine {
             template<typename T, typename ...Remains>
             void DoQuery(std::vector<Entity> &out) {
                 auto index = IndexGetter<Component>::Get<T>();
-                World::ComponentInfo &info = world.componentMap[index];
+                if (world.componentMap.find(index) == world.componentMap.end()) {
+                    return;
+                }
+                World::ComponentInfo &info = world.componentMap.at(index);
 
                 for (auto e : info.sparseSet) {
                     if constexpr (sizeof...(Remains) != 0) {

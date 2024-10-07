@@ -231,17 +231,28 @@ void engine::components::LabelTextRenderSystem(ecs::Commands &commander, ecs::Qu
             pos = textComp.dPos;
         }
         int origFontSize = Renderer::GetCurrentFontsize();
-        Renderer::ChangeFontSize(textComp.fontsize);
+        if (textComp.fontsize != origFontSize) {
+            Renderer::ChangeFontSize(textComp.fontsize);
+        }
         SDL_Point p;
         TTF_SizeUTF8(Renderer::GetFont(), textComp.text.c_str(), &p.x, &p.y);
         Vec2 size(p.x, p.y);
 
-        Renderer::SetDrawColor(textComp.bg);
-        Renderer::FillRect(pos, size);
-        auto t = Renderer::Text(textComp.text, textComp.fg);
+        if (!textComp.useColorKey) {
+            Renderer::SetDrawColor(textComp.bg);
+            Renderer::FillRect(pos, size);
+        }
+        Renderer::Texture t;
+        if (textComp.useColorKey) {
+            t = Renderer::Text(textComp.text, textComp.fg, textComp.key);
+        } else {
+            t = Renderer::Text(textComp.text, textComp.fg);
+        }
         Renderer::RenderTexture(t, pos);
         Renderer::DeleteRenderContext(t);
         Renderer::ClearDrawColor();
-        Renderer::ChangeFontSize(origFontSize);
+        if (textComp.fontsize != origFontSize) {
+            Renderer::ChangeFontSize(origFontSize);
+        }
     }
 }

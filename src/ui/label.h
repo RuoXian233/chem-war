@@ -8,9 +8,9 @@ namespace engine::ui {
         void Config(int fontsize, Color fg, Color bg = { 0, 0, 0, 255 });
         std::string GetText();
         void SetText(const std::string &text);
+        ~Label();
         
     private:
-        ~Label();
         std::string text;
         int fontsize;
         Color fg, bg;

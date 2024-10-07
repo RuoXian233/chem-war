@@ -1,4 +1,5 @@
 #pragma once
+#include "../lib/ecs.h"
 
 
 namespace chem_war {
@@ -7,5 +8,7 @@ namespace chem_war {
         static void Prepare(int argc, char **argv);
         static void Run();
         static void Quit();
+    private:
+        static engine::ecs::World world;
     };
 }

@@ -9,7 +9,6 @@ using namespace engine;
 namespace chem_war {
     class Character final {
     public:
-        static Character *Instance(const std::string &texture);
         static Character *Instance();
         void Prepare();
         void Render();

@@ -10,7 +10,7 @@
 #include <map>
 #include <sstream>
 
-#define SRAND() srand((unsigned) (nullptr))
+#define SRAND() srand((unsigned) time(nullptr))
 
 
 namespace engine {
