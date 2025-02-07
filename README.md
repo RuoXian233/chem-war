@@ -1,2 +1,2 @@
-# chem-war
-A simple 2d game with inspired from chemical reactions and Genshin Impact
+# Yan Engine
+A simple 2d game engine with simple gui system support
