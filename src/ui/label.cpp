@@ -1,43 +1,32 @@
 #include "label.h"
-#include "../lib/components.h"
 
-using namespace engine;
+using namespace engine::ui;
 
 
-ui::Label::Label(const std::string &id, const std::string &text, ecs::World &world) : GameObject(id, world) {
-    this->text = text;
-    ecs::Commands command(this->world);
-    this->entityId = command.Spawned<components::Movement, components::LabelText>(
-        components::Movement { Vec2(), Vec2() },
-        components::LabelText {
-            this->text, 0
+void engine::ui::UI_Label(GUIWindow *window, Label *lb, const Vec2 &pos) {
+    TTF_Font *f;
+    int fontsize;
+    if (lb->fontslot != -1) {
+        f = Renderer::GetSlotFont(lb->fontslot);
+        fontsize = Renderer::GetSlotFontsize(lb->fontslot);
+        if (fontsize != lb->fontsize) {
+            Renderer::SetSlotFontsize(lb->fontslot, lb->fontsize);
         }
-    );
-    command.Execute();
-    this->Config(Renderer::GetCurrentFontsize(), Colors::White);
-}
+    } else {
+        f = Renderer::GetGlobalFont();
+        fontsize = Renderer::GetGlobalFontsize();
+        if (fontsize != lb->fontsize) {
+            Renderer::ChangeFontSize(lb->fontsize);
+        }
+    }
+    
+    auto t = Renderer::Text(lb->text, lb->fg);
+    Renderer::RenderTexture(t, window->pos + pos);
+    Renderer::DeleteRenderContext(t);
 
-void ui::Label::Config(int fontsize, Color fg, Color bg) {
-    this->fontsize = fontsize;
-    this->fg = fg;
-    this->bg = bg;
-
-    auto &textComp = this->GetComponent<components::LabelText>();
-    textComp.text = this->text;
-    textComp.fg = fg;
-    textComp.bg = bg;
-    textComp.fontsize = fontsize;
-}
-
-
-ui::Label::~Label() {}
-
-
-std::string ui::Label::GetText() {
-    return this->text;
-}
-
-void ui::Label::SetText(const std::string &text) {
-    this->text = text;
-    this->GetComponent<components::LabelText>().text = text;
+    if (lb->fontslot != -1) {
+        Renderer::SetSlotFontsize(lb->fontslot, fontsize);
+    } else {
+        Renderer::ChangeFontSize(lb->fontsize);
+    }
 }

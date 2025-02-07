@@ -1,5 +1,5 @@
 #include "utils.hpp"
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 
 namespace engine {
@@ -51,6 +51,18 @@ namespace engine {
         return self.x * other.x + self.y * other.y;
     }
 
+    Vec2 operator/(const Vec2 &self, float other) {
+        return self * (1 / other);
+    }
+
+    void operator/=(Vec2 &self, float other) {
+        self *= 1 / other;
+    }
+
+    bool operator==(const Vec2 &self, const Vec2 &other) {
+        return self.x == other.x && self.y == other.y;
+    }
+
     SDL_Rect Vec2::CreateRect(const Vec2 &a, const Vec2 &b) {
         SDL_Rect r = { (int) a.x, (int) a.y, (int) b.x, (int) b.y };
         return r;
@@ -100,7 +112,7 @@ namespace engine {
     }
 
 
-    QuadTree::QuadTree(int pLevel, const Vec2 &boundPos, const Vec2 &boundSize) {
+    /*QuadTree::QuadTree(int pLevel, const Vec2 &boundPos, const Vec2 &boundSize) {
         this->level = pLevel;
         this->pos = boundPos;
         this->size = boundSize;
@@ -219,7 +231,7 @@ namespace engine {
     }
 
     std::vector<QuadTree::ObjectWithRect> QuadTree::Retrieve(std::vector<ObjectWithRect > &result, const Vec2 &rectPos, const Vec2 &rectSize) {
-        auto  indexes = GetIndexes(rectPos, rectSize);
+        auto indexes = GetIndexes(rectPos, rectSize);
 
         for(int ii = 0; ii < indexes.size(); ii++) {
             int index = indexes[ii];
@@ -233,5 +245,15 @@ namespace engine {
         }
         
         return result;
+    }*/
+
+    float Vec2::Angle(const Vec2 &v) {
+        float d = atan2(v.y, v.x) * 180 / PI;
+        return d < 0 ? 360 + d : d;
+        // return Angle(Vec2(1, 0), v);
     }
-} 
+
+    float Vec2::Angle(const Vec2 &v1, const Vec2 &v2) {
+        return acos((v1 * v2) / (v1.Length() * v2.Length())) * 180 / PI;
+    }
+}

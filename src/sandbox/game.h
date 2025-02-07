@@ -1,14 +1,14 @@
 #pragma once
 #include "../lib/ecs.h"
+#include "../lib/render.h"
 
+using namespace engine;
 
-namespace chem_war {
+namespace sandbox {
     class Game final {
     public:
         static void Prepare(int argc, char **argv);
         static void Run();
         static void Quit();
-    private:
-        static engine::ecs::World world;
     };
 }

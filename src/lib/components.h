@@ -50,7 +50,7 @@ namespace engine {
         struct SimpleCollider2D {
             std::string tag;
             bool showCollider = false;
-            Vec2 pos;
+            // Vec2 pos;
             Vec2 size;
             std::function<void(const std::string &, ecs::Entity, const std::string &, ecs::Entity)> onCollide;
         };
@@ -59,11 +59,11 @@ namespace engine {
             int shots = 0;
             int maxShots;
             bool isActivated = true;
-            uint32_t duration;
+            float duration;
             float current = 0;
             std::function<void(ecs::Entity)> callback;
 
-            inline void Configure(int maxShots, uint32_t duration, std::function<void(ecs::Entity)> callback) {
+            inline void Configure(int maxShots, float duration, std::function<void(ecs::Entity)> callback) {
                 this->maxShots = maxShots;
                 this->duration = duration;
                 this->callback = callback;
@@ -90,6 +90,7 @@ namespace engine {
             bool useColorKey;
             Color key;
             Vec2 dPos;
+            Vec2 size;
         };
 
         void MovementSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e);

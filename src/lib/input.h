@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <functional>
 #include <map>
 #include "utils.hpp"
@@ -10,7 +10,7 @@ namespace engine {
 
     class InputManager final {
     public:
-        using EventHandler = std::function<void(void *, SDL_Event)>;
+        using EventHandler = std::function<bool(void *, SDL_Event)>;
 
         static void Initialize();
         static void Update();
@@ -22,6 +22,7 @@ namespace engine {
         static bool KeyUp(const SDL_Event &e, SDL_KeyCode key);
         static Vec2 GetMousePos(const SDL_Event &e);
         static std::vector<SDL_Event> GetEventCache();
+        static Vec2 GetMouseScrollVector(const SDL_Event &e);
 
         static void ClearHandlers();
 
@@ -31,10 +32,12 @@ namespace engine {
         static Vec2 QueryMousePos();
 
         static void RegisterHandler(SDL_EventType type, void *listener, const EventHandler &handler);
+        static void RegisterConditionalHandler(std::function<bool(SDL_Event)> condition, void *listener, const EventHandler &handler);
     private:
         static bool shouldQuit;
         static SDL_Event currentEvent;
         static std::map<Uint32, std::pair<void *, EventHandler>> handlers;
+        static std::vector<std::pair<std::function<bool(SDL_Event)>, std::pair<void *, EventHandler>>> conditionalHandlers;
         static std::vector<SDL_Event> eventLastFrame;
     };
 }

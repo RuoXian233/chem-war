@@ -1,17 +1,24 @@
+#pragma once
 #include "../lib/object.h"
+#include "../preset/gui.h"
 
 
 namespace engine::ui {
-    class Button : public GameObject {
-    public:
-        Button(const std::string &id, ecs::World &world);
-        void Config(const std::string &normalRes, const std::string &clickRes = "", const std::string &hoverRes = "");
-        void Bind(std::function<void(ecs::World &, void *)>);
-    private:
-        std::string normal;
-        std::string click;
-        std::string hover;
-        bool binded = false;
-        std::function<void(ecs::World &, void *)> callback;
+    enum class ButtonSizingType {
+        Fixed, Expand
     };
+
+    struct Button {
+        std::string text;
+        Color fg, bg;
+        ButtonSizingType sizingType;
+        int horizonalMargin = 0, verticalMargin = 0;
+        Vec2 size;
+        int cornerRadius = 0;
+        int borderWidth = -1;
+        Color borderColor;
+        int fontSlot = -1;
+    };
+
+    engine::preset::ButtonInterationType UI_Button(Button *btn, const Vec2 &pos);
 }

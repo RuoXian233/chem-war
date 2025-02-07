@@ -7,7 +7,7 @@
 #include "utils.hpp"
 
 #define GET_SOURCE_INFO() \
-    engine::SourceInfo { __FILE__, __FUNCTION__, __LINE__ }
+    engine::SourceInfo { Logger::ParseFilename(__FILE__), __FUNCTION__, __LINE__ }
 
 static const char *LOG_LEVEL_STRING[] = { 
     "DEBUG", "INFO", "WARNING", "ERROR", "FATAL" 
@@ -19,23 +19,31 @@ static const char *LOG_LEVEL_STRING[] = {
 #ifdef PREFER_LOGGER_REF
     #define _LOG_IMPL(logger, level, message) (logger).Log(level, message, GET_SOURCE_INFO())
     #define _LOG_IMPL_F(logger, level, fmt, ...) (logger).Log(level, std::format(fmt, __VA_ARGS__), GET_SOURCE_INFO())
-#else
+    #define _LOG_IMPL_EXPR(logger, level, expr) (logger).Log(level, std::format("{}: {}", #expr, (expr)), GET_SOURCE_INFO())
+    #else
     #define _LOG_IMPL(logger, level, message) (logger)->Log(level, message, GET_SOURCE_INFO())
     #define _LOG_IMPL_F(logger, level, fmt, ...) (logger)->Log(level, std::format(fmt, __VA_ARGS__), GET_SOURCE_INFO())
+    #define _LOG_IMPL_EXPR(logger, level, expr) (logger)->Log(level, std::format("{}: {}", #expr, (expr)), GET_SOURCE_INFO())
 #endif
 
 #define LOG(level, message) _LOG_IMPL(DEFAULT_LOGGER_NAME, level, message)
 #define LOG_F(level, fmt, ...) _LOG_IMPL_F(DEFAULT_LOGGER_NAME, level, fmt, __VA_ARGS__)
+#define LOG_EXPR(level, expr) _LOG_IMPL_EXPR(DEFAULT_LOGGER_NAME, level, expr)
 #define INFO(message) LOG(engine::Logger::Level::Info, message)
 #define INFO_F(fmt, ...) LOG_F(engine::Logger::Level::Info, fmt, __VA_ARGS__)
+#define INFO_EXPR(expr) LOG_EXPR(engine::Logger::Level::Info, expr)
 #define DEBUG(message) LOG(engine::Logger::Level::Debug, message)
 #define DEBUG_F(fmt, ...) LOG_F(engine::Logger::Level::Debug, fmt, __VA_ARGS__)
+#define DEBUG_EXPR(expr) LOG_EXPR(engine::Logger::Level::Debug, expr)
 #define WARNING(message) LOG(engine::Logger::Level::Warning, message)
 #define WARNING_F(fmt, ...) LOG_F(engine::Logger::Level::Warning, fmt, __VA_ARGS__)
+#define WARNING_EXPR(expr) LOGP_EXPR(engine::Logger::Level::Warning, expr)
 #define ERROR(message) LOG(engine::Logger::Level::Error, message)
 #define ERROR_F(fmt, ...) LOG_F(engine::Logger::Level::Error, fmt, __VA_ARGS__)
+#define ERROR_EXPR(expr) LOG_EXPR(engine::Logger::Level::Error, expr)
 #define FATAL(message) LOG(engine::Logger::Level::Fatal, message)
 #define FATAL_F(fmt, ...) LOG_F(engine::Logger::Level::Fatal, fmt, __VA_ARGS__)
+#define FATAL_EXPR(expr) LOG_EXPR(engine::Logger::Level::Fatal, expr)
 
 
 #define RESET "\033[0m"

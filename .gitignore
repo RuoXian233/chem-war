@@ -1,6 +1,7 @@
-build/*
-.cache/*
 .vscode/*
-.idea/*
-assets/*
-cmake-build-debug/*
+CMakeSettings.json
+test.py
+.clangd
+tests/*
+3rd_party/*
+build/*

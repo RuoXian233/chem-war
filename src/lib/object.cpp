@@ -1,40 +1,66 @@
 #include "object.h"
 
 
-engine::GameObject::GameObject(const std::string &id, ecs::World &world, ecs::Entity entityId) : id(id), world(world) {
+engine::GameObjectBase::GameObjectBase(const std::string &id) {
+    this->id = id;
+}
+
+engine::UIBase::UIBase(const std::string &id) : GameObjectBase(id), window(nullptr) {}
+
+void engine::UIBase::Translate(const Vec2 &pos) {
+    this->pos = pos;
+}
+
+void engine::UIBase::Move(const Vec2 &delta) {
+    this->pos += delta;
+}
+
+void engine::UIBase::SetOpacity(int a) {
+    this->opacity = a;
+}
+
+engine::GameObject::GameObject(const std::string &id, ecs::World &world, ecs::Entity entityId) : GameObjectBase(id), world(world) {
     this->entityId = entityId;
 }
 
-std::string engine::GameObject::GetId() const {
+std::string engine::GameObjectBase::GetId() const {
     return this->id;
 }
 
-void engine::GameObject::AddChildren(GameObject *go) {
+void engine::GameObjectBase::AddChildren(GameObjectBase *go) {
     this->childrens.push_back(go);
     go->SetParent(this);
 }
 
-void engine::GameObject::RemoveChildrens() {
+void engine::GameObjectBase::RemoveChildrens() {
     this->childrens.clear();
 }
 
-std::vector<engine::GameObject *> engine::GameObject::GetChildrens() {
+int engine::UIBase::GetOpacity() {
+    return this->opacity;
+}
+
+engine::Vec2 engine::UIBase::GetPos() {
+    return this->pos;
+}
+
+std::vector<engine::GameObjectBase *> engine::GameObjectBase::GetChildrens() {
     return this->childrens;
 }
 
-void engine::GameObject::Update(float dt) {
+void engine::GameObjectBase::Update(float dt) {
     for (auto &&children : this->childrens) {
         children->Update(dt);
     }
 }
 
-void engine::GameObject::Render() {
+void engine::GameObjectBase::Render() {
     for (auto &&children : this->childrens) {
         children->Render();
     }
 }
 
-[[deprecated]] void engine::GameObject::SetParent(GameObject *go) {
+[[deprecated]] void engine::GameObjectBase::SetParent(GameObjectBase *go) {
     this->parent = go;
     // go->AddChildren(this);
 }

@@ -94,7 +94,7 @@ void engine::components::GraphRenderSystem(ecs::Commands &commander, ecs::Querie
 }
 
 void engine::components::BasicTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
-    auto font = Renderer::GetFont();
+    auto font = Renderer::GetGlobalFont();
     for (auto entity : q.Query<BasicText>()) {
         if (q.Has<SceneAssosication>(entity)) {
             auto scene = q.Get<SceneAssosication>(entity).sceneName;
@@ -139,7 +139,7 @@ void engine::components::SimpleSwitchSystem(ecs::Commands &commander, ecs::Queri
 void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
     std::vector<QuadTree::ObjectWithRect> collidingEntities;
     std::vector<QuadTree::ObjectWithRect> filtedEntities;
-    QuadTree qt(0, Vec2(0, 0), Vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
+    //QuadTree qt(0, Vec2(0, 0), Vec2(WINDOW_WIDTH, WINDOW_HEIGHT));
 
     // Filter some entities that must not be colliding
     for (auto entity : q.Query<SimpleCollider2D>()) {
@@ -150,10 +150,13 @@ void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Q
             }
         }
 
-        auto pos = q.Get<Movement>(entity).pos;
+        Vec2 pos;
         if (q.Has<Movement>(entity)) {
             pos = q.Get<Movement>(entity).pos;
+        } else {
+            continue;
         }
+        
         auto comp = q.Get<SimpleCollider2D>(entity);
 
         if (comp.showCollider) {
@@ -161,7 +164,7 @@ void engine::components::SimpleCollider2DSystem(ecs::Commands &commander, ecs::Q
             Renderer::DrawRect(pos, comp.size);
             Renderer::ClearDrawColor();
         }
-        collidingEntities.push_back(QuadTree::ObjectWithRect { comp.tag, reinterpret_cast<void *>(entity), pos, comp.size });
+        // collidingEntities.push_back(QuadTree::ObjectWithRect { comp.tag, reinterpret_cast<void *>(entity), pos, comp.size });
     }
 
     // for (auto e : collidingEntities) {
@@ -215,7 +218,9 @@ void engine::components::SimpleTimerSystem(ecs::Commands &commander, ecs::Querie
     }
 }
 
-void engine::components::LabelTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+[[deprecated]] void engine::components::LabelTextRenderSystem(ecs::Commands &commander, ecs::Querier q, ecs::Resources r, ecs::Events &e) {
+    // Deprecated
+
     for (auto entity : q.Query<LabelText>()) {
         if (q.Has<SceneAssosication>(entity)) {
             if (q.Get<SceneAssosication>(entity).sceneName != SceneManager::GetCurrentSceneName()) {
@@ -230,13 +235,14 @@ void engine::components::LabelTextRenderSystem(ecs::Commands &commander, ecs::Qu
         } else {
             pos = textComp.dPos;
         }
-        int origFontSize = Renderer::GetCurrentFontsize();
+        int origFontSize = Renderer::GetGlobalFontsize();
         if (textComp.fontsize != origFontSize) {
             Renderer::ChangeFontSize(textComp.fontsize);
         }
         SDL_Point p;
-        TTF_SizeUTF8(Renderer::GetFont(), textComp.text.c_str(), &p.x, &p.y);
+        TTF_SizeUTF8(Renderer::GetGlobalFont(), textComp.text.c_str(), &p.x, &p.y);
         Vec2 size(p.x, p.y);
+        q.Get<LabelText>(entity).size = size;
 
         if (!textComp.useColorKey) {
             Renderer::SetDrawColor(textComp.bg);

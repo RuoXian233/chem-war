@@ -1,8 +1,13 @@
 #include "game.h"
+#include "../lib/plugins/profiler.hpp"
 
 
 int main(int argc, char *argv[]) {
-    chem_war::Game::Prepare(argc, argv);
-    chem_war::Game::Run();
-    chem_war::Game::Quit();    
+    sandbox::Game::Prepare(argc, argv);
+    // Renderer::EnableProfiling("engine_profile.dat");
+    Renderer::EnableFPSCounter();
+    sandbox::Game::Run();
+    sandbox::Game::Quit();
+    // engine::OpenProfilingWindow("engine_profile.dat");
+    return 0;
 }

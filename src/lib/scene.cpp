@@ -181,7 +181,7 @@ void SceneManager::PrintSceneHeirarchy() {
     auto scene = SceneManager::GetCurrentScene();
     DEBUG_F("[Target scene: {}]", SceneManager::GetCurrentSceneName());
     
-    std::function<void(int, GameObject*)> PrintGameObject = [&](int depth, GameObject *go) {
+    std::function<void(int, GameObjectBase*)> PrintGameObject = [&](int depth, GameObjectBase *go) {
         std::cout << std::string(depth * 2, ' ') << "|-" << go->GetId();
         auto childrens = go->GetChildrens();
         if (!childrens.empty()) {

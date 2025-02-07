@@ -23,8 +23,8 @@ namespace engine {
 
         std::string prevScene;
         std::string nextScene;
-        std::map<std::string, GameObject *> objects;
-        std::map<std::string, GameObject *> borrowedObjects;
+        std::map<std::string, GameObjectBase *> objects;
+        std::map<std::string, GameObjectBase *> borrowedObjects;
         bool firstEnter = true;
 
         template<typename T = GameObject>
@@ -70,6 +70,6 @@ namespace engine {
         static std::map<std::string, Scene *> scenes;
 
         // TODO: implement shared objects
-        static std::vector<std::string, GameObject *> sharedObjects;
+        static std::vector<std::string, GameObjectBase *> sharedObjects;
     };
 }

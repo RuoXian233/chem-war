@@ -6,6 +6,7 @@ using namespace engine;
 bool InputManager::shouldQuit;
 SDL_Event InputManager::currentEvent;
 std::map<Uint32, std::pair<void *, InputManager::EventHandler>> InputManager::handlers;
+std::vector<std::pair<std::function<bool(SDL_Event)>, std::pair<void *, InputManager::EventHandler>>> InputManager::conditionalHandlers;
 std::vector<SDL_Event> InputManager::eventLastFrame;
 
 static Logger logger("InputManager");
@@ -29,8 +30,18 @@ void InputManager::Update() {
 
         if (utils_MapHasKey(InputManager::handlers, InputManager::currentEvent.type)) {
             auto [listener, handler] = InputManager::handlers.at(InputManager::currentEvent.type);
-            DEBUG_F("Triggering handler: {}->{} (listener={})", (int) InputManager::currentEvent.type, (void *) listener, (void *) &handler);
-            handler(listener, InputManager::currentEvent);
+            if (handler(listener, InputManager::currentEvent)) {
+                DEBUG_F("Triggering handler: {}->{} (listener={})", (int) InputManager::currentEvent.type, (void *) listener, (void *) &handler);
+            }
+        }
+
+        for (auto [condition, handlerGroup] : InputManager::conditionalHandlers) {
+            if (condition(InputManager::currentEvent)) {
+                auto [listener, handler] = handlerGroup;
+                if (handler(listener, InputManager::currentEvent)) {
+                    DEBUG_F("Triggering conditional handler: {}->{} (listener={})", (int) InputManager::currentEvent.type, (void *) listener, (void *) &handler);
+                }
+            }
         }
 
         InputManager::eventLastFrame.push_back(currentEvent);
@@ -84,4 +95,12 @@ Vec2 InputManager::QueryMousePos() {
     int w, h;
     SDL_GetMouseState(&w, &h);
     return Vec2((float) w, (float) h);
+}
+
+Vec2 InputManager::GetMouseScrollVector(const SDL_Event &e) {
+    return Vec2(e.wheel.x, e.wheel.y);
+}
+
+void InputManager::RegisterConditionalHandler(std::function<bool(SDL_Event)> condition, void *listener, const InputManager::EventHandler &handler) {
+    InputManager::conditionalHandlers.push_back(std::make_pair(condition, std::make_pair(listener, handler)));
 }

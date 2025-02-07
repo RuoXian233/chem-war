@@ -1,63 +1,33 @@
 #include "game.h"
-#include "../lib/render.h"
-#include "../lib/input.h"
-#include "../lib/resource.h"
-#include "../lib/components.h"
-#include "character.h"
-#include "../lib/fake3d.h"
+#include "engine.h"
+#include "../preset/gui.h"
 
 using namespace engine;
 
-ecs::World chem_war::Game::world;
 
-
-void chem_war::Game::Prepare(int argc, char **argv) {
-    Renderer::Initialize();
-    InputManager::Initialize();
-    ResourceManager::Initialize(argc, argv);
-
-    Renderer::CreateWindow(1366, 768, "Engine");
-    Renderer::LoadFont("assets/wqy-microhei.ttc", 16);
-    ResourceManager::Load("character.figure", engine::ResourceType::Texture, "assets/character/character.figure.4.png");
-    ResourceManager::Load("enemy.figure", engine::ResourceType::Texture, "assets/imgs/enemy.png");
-    Character::Instance()->Prepare();
-    Game::world.AddSystem(engine::components::LabelTextRenderSystem)
-               .AddSystem(engine::components::MovementSystem);
+void sandbox::Game::Prepare(int argc, char **argv) {
+    preset::BeginGUIContext(argc, argv, 800, 600, "Engine");
+    Renderer::LoadFont("assets/genshin-font.ttf", 32);
+    Renderer::SetGlobalBackGround("assets/bg.png");
 }
 
-void chem_war::Game::Run() {
-    auto character = Character::Instance();
+void sandbox::Game::Run() {
+    preset::SetGUIProc([=](float) {
+        preset::Begin(Vec2(100, 100), Vec2(300, 300), "Hello, my IMGUI", 0);
+        preset::Begin(Vec2(320, 160), Vec2(320, 160), "SubWindow", 0);
+        preset::Begin(Vec2(400, 100), Vec2(128, 64), "SubWindow2", 0);
+        preset::Begin(Vec2(100, 100), Vec2(300, 300), "Hello, my IMGUI #2", 0);
+        preset::Begin(Vec2(320, 160), Vec2(320, 160), "SubWindow3", 0);
+        preset::Begin(Vec2(400, 100), Vec2(128, 64), "SubWindow4", 0);
+        preset::End();
+        preset::End();
+        preset::End();
+        preset::End();
+        preset::End();
+        preset::End();
+    });
+} 
 
-    while (!InputManager::ShouldQuit()) {
-        auto dt = Renderer::GetDeltatime();
-        Renderer::Clear();
-        InputManager::Update();
-        Game::world.Update();
-
-        character->Update(dt);
-        character->Render();
-
-        if (InputManager::QueryKey(SDL_SCANCODE_W)) {
-            character->controller.AddMovement(Direction::Up);
-        }
-        if (InputManager::QueryKey(SDL_SCANCODE_A)) {
-            character->controller.AddMovement(Direction::Left);
-        }
-        if (InputManager::QueryKey(SDL_SCANCODE_S)) {
-            character->controller.AddMovement(Direction::Down);
-        }
-        if (InputManager::QueryKey(SDL_SCANCODE_D)) {
-            character->controller.AddMovement(Direction::Right);
-        }
-
-        Renderer::Update(); 
-    }
-}
-
-void chem_war::Game::Quit() {
-    Game::world.Shutdown();
-    Character::Instance()->Destroy();
-    ResourceManager::Finalize();
-    InputManager::Finalize();
-    Renderer::Finalize();
+void sandbox::Game::Quit() {
+    preset::EndGUIContext();
 }

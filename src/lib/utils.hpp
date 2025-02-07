@@ -5,7 +5,7 @@
 #include <cassert>
 #include <format>
 #include <cmath>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <vector>
 #include <map>
 #include <sstream>
@@ -45,6 +45,8 @@ namespace engine {
         static Vec2 Rotate(const Vec2 &v, float angle);
         static SDL_Rect CreateRect(const Vec2 &a, const Vec2 &b);
         static SDL_FRect CreateFRect(const Vec2 &a, const Vec2 &b);
+        static float Angle(const Vec2 &v);
+        static float Angle(const Vec2 &v1, const Vec2 &v2);
     };
 
     struct QuadTree final {
@@ -55,7 +57,9 @@ namespace engine {
             Vec2 size;
         };
 
-        std::vector<ObjectWithRect> objects;
+        void* _placeholder;
+
+        /*std::vector<ObjectWithRect> objects;
         std::array<QuadTree *, 4> children;
         int level;
         Vec2 pos;
@@ -69,7 +73,7 @@ namespace engine {
         std::vector<int> GetIndexes(const Vec2 &rectPos, const Vec2 &rectSize);
         void Insert(const ObjectWithRect &object, const Vec2 &objectPos, const Vec2 &objectSize);
         void Split();
-        std::vector<ObjectWithRect>Retrieve(std::vector<ObjectWithRect> &result, const Vec2 &rectPos, const Vec2 &rectSize);
+        std::vector<ObjectWithRect> Retrieve(std::vector<ObjectWithRect> &result, const Vec2 &rectPos, const Vec2 &rectSize);*/
     };  
 
     enum class Direction {
@@ -83,8 +87,12 @@ namespace engine {
     Vec2 operator*(const Vec2 &self, float other);
     void operator*=(Vec2 &self, float other);
     Vec2 operator*(float self, const Vec2 &other);
+    Vec2 operator/(const Vec2 &self, float other);
+    void operator/=(Vec2 &self, float other);
     float operator*(const Vec2 &self, const Vec2 &other);
     Vec2 operator-(const Vec2 &self);
+
+    bool operator==(const Vec2 &self, const Vec2 &other);
 
     std::vector<std::string> StringSplit(const std::string &str, const std::string &splitter);
     bool PointInRect(const Vec2 &point, const Vec2 &xy, const Vec2 &wh);
@@ -115,6 +123,15 @@ namespace engine {
     template<typename T, typename U>
     std::string ToString(const std::map<T, U> &m) {
         return "[Not implemented]";
+    }
+
+    template<typename T>
+    std::vector<std::pair<unsigned, T>> Enumerate(const std::vector<T> &arr) {
+        std::vector<std::pair<unsigned, T>> result;
+        for (unsigned i = 0; i < arr.size(); i++) {
+            result.push_back(std::make_pair(i, arr[i]));
+        }
+        return result;
     }
 
     using Color = SDL_Color;

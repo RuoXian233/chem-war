@@ -1,6 +1,7 @@
 #pragma once
 #include "utils.hpp"
 #include <vector>
+#include <optional>
 #include <cassert>
 #include <memory>
 #include <array>
